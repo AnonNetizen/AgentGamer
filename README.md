@@ -1,5 +1,7 @@
 # AgentGamer
 
+**简体中文** | [English](https://github.com/AnonNetizen/AgentGamer/blob/main/README.en.md)
+
 在 **DeepSeek Harness（DSH）** 里，和 AI 或自己的桌宠伙伴面对面玩游戏。
 
 内置 **21 点** 和 **双人吹牛骰**，提供大厅、公开记录、文字／Emoji 聊天和 Web 游戏扩展接口。直接使用 DSH 已配置的模型与思考设置，无须另填 API Key。

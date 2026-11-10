@@ -30,7 +30,7 @@ export function auditArchive(file, manifest) {
       if (type !== "5") {
         const relative = path.slice(8);
         if (
-          !/^(?:(?:package\.json|cordis\.patch\.yml|README\.md|LICENSE|THIRD_PARTY_NOTICES\.md|CHANGELOG\.md|client\.js|host\.js)$|dist\/|docs\/|rules\/|examples\/counting\/)/.test(
+          !/^(?:(?:package\.json|cordis\.patch\.yml|README(?:\.en)?\.md|LICENSE|THIRD_PARTY_NOTICES\.md|CHANGELOG\.md|client\.js|host\.js)$|dist\/|docs\/|rules\/|examples\/counting\/)/.test(
             relative,
           )
         )
@@ -63,6 +63,7 @@ export function auditArchive(file, manifest) {
     throw Error("Bundle patch package name mismatch");
   if (manifest.name === "dsh-agentgamer") {
     for (const name of [
+      "README.en.md",
       "dist/host.js",
       "dist/client.js",
       "dist/sdk.js",

@@ -1,0 +1,76 @@
+{
+  "baselineVersion": "0.1.1",
+  "version": "0.2.0",
+  "metric": "serialized request UTF-8 bytes; not provider billing tokens",
+  "baseline": [
+    {
+      "calls": 15,
+      "inputBytes": 279951,
+      "peakInputBytes": 36610,
+      "peakMessages": 26
+    },
+    {
+      "calls": 15,
+      "inputBytes": 804681,
+      "peakInputBytes": 71592,
+      "peakMessages": 51
+    },
+    {
+      "calls": 15,
+      "inputBytes": 1329411,
+      "peakInputBytes": 106574,
+      "peakMessages": 76
+    },
+    {
+      "calls": 15,
+      "inputBytes": 1854141,
+      "peakInputBytes": 141556,
+      "peakMessages": 101
+    },
+    {
+      "calls": 15,
+      "inputBytes": 2378871,
+      "peakInputBytes": 176538,
+      "peakMessages": 126
+    }
+  ],
+  "optimized": [
+    {
+      "calls": 10,
+      "inputBytes": 52161,
+      "peakInputBytes": 6806,
+      "peakMessages": 5
+    },
+    {
+      "calls": 10,
+      "inputBytes": 55875,
+      "peakInputBytes": 7141,
+      "peakMessages": 5
+    },
+    {
+      "calls": 10,
+      "inputBytes": 59235,
+      "peakInputBytes": 7477,
+      "peakMessages": 5
+    },
+    {
+      "calls": 10,
+      "inputBytes": 62595,
+      "peakInputBytes": 7813,
+      "peakMessages": 5
+    },
+    {
+      "calls": 10,
+      "inputBytes": 62595,
+      "peakInputBytes": 7813,
+      "peakMessages": 5
+    }
+  ],
+  "firstMatchInputReduction": 0.8136781079546064,
+  "history": true,
+  "chatReply": true,
+  "queuedChat": true,
+  "duplicateReceipt": true,
+  "cancellation": true,
+  "ordinarySession": true
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Frozen synthetic golden traces generated from the former C# rules and Frame RNG; no user matches or hidden production state.",
+  "ruleVersion": "1.0.0",
+  "matches": 80,
+  "uncompressedSha256": "a1b3478ef20f52e6ab58f94bc932be5d73e47911acca1f84ad9cd21778f2911b",
+  "sourceSha256": {
+    "Blackjack.cs": "32d8ace7d5a9aa0638c89ce4d871eaa7677e6bc410305c4c21eb9a9d90330245",
+    "RandomStream.cs": "9ccbadeee37729dba7cbc4cc1126fafaf34419e40b8070aae27c8b3c310e7285"
+  }
+}

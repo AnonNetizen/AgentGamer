@@ -1,0 +1,113 @@
+{
+  "name": "dsh-plugin-agentgamer",
+  "version": "0.2.0",
+  "description": "在 DeepSeek Harness 中与 AI 或桌宠伙伴面对面玩游戏",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.9.0",
+    "dsh": "0.2.2-rc.1"
+  },
+  "packageManager": "pnpm@11.28.5",
+  "main": "./dist/host.js",
+  "exports": {
+    ".": {
+      "types": "./dist/types/host.d.ts",
+      "default": "./dist/host.js"
+    },
+    "./client": {
+      "types": "./dist/types/client.d.ts",
+      "default": "./dist/client.js"
+    },
+    "./sdk": {
+      "types": "./dist/types/sdk.d.ts",
+      "default": "./dist/sdk.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "examples/counting",
+    "rules",
+    "docs",
+    "CHANGELOG.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-ui-workspace"
+      ],
+      "external": []
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "pack:local": "node scripts/release.mjs",
+    "check": "node scripts/check.mjs",
+    "release:local": "node scripts/release.mjs",
+    "check:native": "node scripts/check-native.mjs"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-agent": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-llm": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-system-prompt": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.2-rc.1",
+    "react": "^18.2.0",
+    "zod": "4.4.3",
+    "@deepseek-ai/dsh-compaction": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-home-paths": "0.2.2-rc.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-agent": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-compaction": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-llm": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-system-prompt": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-tools": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-typert-protocol": "0.2.2-rc.1",
+    "@types/node": "^24.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "esbuild": "^0.25.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "zod": "4.4.3",
+    "@deepseek-ai/dsh-home-paths": "0.2.2-rc.1"
+  },
+  "author": "AnonNetizen",
+  "homepage": "https://github.com/AnonNetizen/AgentGamer#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnonNetizen/AgentGamer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AnonNetizen/AgentGamer/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "agent",
+    "games",
+    "blackjack",
+    "liars-dice",
+    "dsh-pet"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "dsh-plugin-agentgamer-counting",
+  "version": "0.2.0",
+  "type": "module",
+  "main": "./host.js",
+  "engines": {
+    "dsh": "0.2.2-rc.1",
+    "node": ">=24.9.0"
+  },
+  "exports": {
+    ".": "./host.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "dsh-plugin-agentgamer"
+      ],
+      "external": [
+        "dsh-plugin-agentgamer"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "dsh-plugin-agentgamer": "^0.2.0",
+    "@deepseek-ai/cordis": "4.1.0",
+    "react": "^18.2.0"
+  },
+  "license": "MIT"
+}

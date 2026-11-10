@@ -1,0 +1,16 @@
+node_modules/
+dist/
+release/
+.artifacts/
+output/
+.playwright-cli/
+.dsh*/
+.env*
+!.env.example
+*.tgz
+*.tmp
+*.log
+**/bin/
+**/obj/
+.DS_Store
+Thumbs.db

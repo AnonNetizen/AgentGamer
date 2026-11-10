@@ -4,7 +4,7 @@
 
 内置 **21 点** 和 **双人吹牛骰**，提供大厅、公开记录、文字／Emoji 聊天和 Web 游戏扩展接口。直接使用 DSH 已配置的模型与思考设置，无须另填 API Key。
 
-[下载最新发行包](https://github.com/AnonNetizen/AgentGamer/releases/latest) · [升级与迁移](docs/migration.md) · [桌宠陪玩](docs/companion.md) · [开发接入](docs/development.md)
+[npm 安装](https://www.npmjs.com/package/dsh-plugin-agentgamer) · [离线发行包](https://github.com/AnonNetizen/AgentGamer/releases/latest) · [升级与迁移](docs/migration.md) · [桌宠陪玩](docs/companion.md) · [开发接入](docs/development.md)
 
 ![AgentGamer 大厅](docs/images/lobby.png)
 
@@ -14,19 +14,29 @@
 
 当前验证组合：**DSH 0.2.2-rc.1、Windows x64、Node ≥24.9**。插件精确声明此 DSH 版本；其他 DSH 版本需要重新验证接口兼容性。
 
-1. 从 [Releases](https://github.com/AnonNetizen/AgentGamer/releases) 下载 `dsh-plugin-agentgamer-0.2.0.tgz`。
-2. 在 DSH 中安装该本地包。使用 CLI 时，将 `YOUR_PROFILE` 替换为正在使用的 profile：
+1. 打开 DSH 侧栏 **插件 → 添加插件**，输入完整包名 `dsh-plugin-agentgamer` 并安装。
+2. 按 DSH 提示重启，进入侧栏 **AgentGamer**，选择模型并连接，然后开始比赛。
 
-   ```powershell
-   dsh plugin --profile YOUR_PROFILE add ./dsh-plugin-agentgamer-0.2.0.tgz
-   ```
-
-3. 按 DSH 提示重启，进入侧栏 **AgentGamer**，选择模型并连接，然后开始比赛。
-
-CLI 应使用 DSH 随附的对应版本。安装和运行在同一 profile／Host；如果侧栏没有入口，检查该 profile 的 `dsh.profile.bundles` 是否包含 `dsh-plugin-agentgamer`。卸载命令：
+也可以使用 CLI 按包名安装。**桌面版**先完全退出 DSH（包括托盘），使用该桌面版附带的 `dsh` 命令：
 
 ```powershell
-dsh plugin --profile YOUR_PROFILE remove dsh-plugin-agentgamer
+dsh plugin --profile desktop add dsh-plugin-agentgamer
+```
+
+如果平时通过 `dsh web` 启动**浏览器版**，使用：
+
+```powershell
+dsh plugin --profile web add dsh-plugin-agentgamer
+```
+
+`desktop`／`web` 是运行配置名称，插件应安装到实际使用的同一 profile。自定义配置则填写启动时的名称。安装后重新打开对应 DSH；桌宠联动也要求两个插件启用在同一 Host。
+
+需要离线包时，仍可从 [Releases](https://github.com/AnonNetizen/AgentGamer/releases) 下载 `dsh-plugin-agentgamer-0.2.0.tgz`，将上述命令中的包名换成 `./dsh-plugin-agentgamer-0.2.0.tgz`。如果侧栏没有入口，检查该 profile 的 `dsh.profile.bundles` 是否包含 `dsh-plugin-agentgamer`。
+
+卸载示例（浏览器版将 `desktop` 换成 `web`）：
+
+```powershell
+dsh plugin --profile desktop remove dsh-plugin-agentgamer
 ```
 
 从旧版 RushAgent 升级时，先按 [迁移说明](docs/migration.md) 移除旧插件及旧 counting 扩展，再安装新包。升级或关闭 Host 会结束内存中的比赛。

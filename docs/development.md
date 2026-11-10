@@ -40,4 +40,12 @@ SDK：`dsh-plugin-agentgamer/sdk`。Host以Cordis `inject: ['agentgamer']` 获�
 
 ## 发行
 
-更新主包、counting版本、CHANGELOG与文档后运行 `pnpm release:local`。脚本先检查和构建，再打包两个tgz，审核实际归档路径、必要文件、品牌、依赖版本、Host边界与机器路径／凭据形态，生成SHA256SUMS。GitHub Release只上传这三个生成文件；npm和插件市场是独立发布渠道，不由本仓库自动发布。
+更新主包、counting版本、CHANGELOG与文档后运行 `pnpm release:local`。脚本先检查和构建，再打包两个tgz，审核实际归档路径、必要文件、品牌、依赖版本、Host边界与机器路径／凭据形态，生成SHA256SUMS。GitHub Release上传两个安装包与校验文件。
+
+主包另发布到npm，使用审核通过的同一tgz；0.2.0的npm产物与GitHub Release逐字节一致。先确认该版本尚未发布，再在发布者本机完成npm登录及其要求的2FA验证：
+
+```powershell
+npm publish ./release/dsh-plugin-agentgamer-0.2.0.tgz --access public --ignore-scripts --registry=https://registry.npmjs.org/
+```
+
+后续发行替换成相应的新版本文件名，不能覆盖已经发布的版本。发布后核对registry完整性字段与匿名下载的归档，并在隔离profile按包名安装验证。不要把登录凭据或恢复码加入仓库、日志及CI。当前CI只构建、检查与生成归档，不自动发布npm或插件市场；counting示例仍作为本地包交付。

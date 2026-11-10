@@ -50,3 +50,11 @@ AgentGamer 0.2.0的验证流程：独立安装锁定依赖、TypeScript与规则
 CI工作流在Windows和Linux上重新安装锁定依赖、构建并审核两个发行包；真实DSH窗口验证目前只覆盖上述Windows目标。
 
 安装可选dsh-pet 0.4.7时，包管理器会报告其部分DSH依赖仍声明0.2.0-rc.2的peer范围；本次在上述固定宿主完成实际联调，未改写dsh-pet的依赖声明。
+
+## npm 分发验证（2026-11-10）
+
+- [主插件](https://www.npmjs.com/package/dsh-plugin-agentgamer) 已发布为0.2.0，registry的 `latest` 指向0.2.0；counting仍通过GitHub Release提供本地包。
+- 未携带认证信息下载公开registry归档成功，大小655887字节；与原GitHub Release归档逐字节一致，SHA-256为 `15b00683a322c8ee6cb24d543c050faa7e2f3f32887d7c74cd02e1bf03414a39`，SHA-512 integrity及SHA-1 shasum均与registry记录一致。
+- 使用真实DSH CLI在隔离 `agentgamer-test` profile执行 `add dsh-plugin-agentgamer` 成功，依赖登记为 `^0.2.0`，bundle自动登记。安装出的Host、客户端、SDK和patch与已测试产物一致。
+- 从此次registry安装启动DSH Host成功；实际调用 `agentgamer/request` 的 `snapshot`，正确返回21点1.0.1与吹牛骰1.0.0，未启动对局或调用供应商模型。
+- 本次只增加分发渠道及安装文档，规则与运行代码保持原样；原v0.2.0标签及GitHub Release附件不替换。安装检查未修改日常工作profile。

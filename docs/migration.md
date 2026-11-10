@@ -6,7 +6,7 @@ AgentGamer是原RushAgent DSH插件的新产品名。本仓库只包含插件，
 
 1. 完成本次比赛并关闭／停止对应Host。
 2. 如果安装旧counting，先移除 `dsh-plugin-rushagent-counting`，再移除 `dsh-plugin-rushagent`。扩展依赖主包，倒序卸载可能使包管理器尝试从npm补装旧主包。
-3. 安装Release中的 `dsh-plugin-agentgamer-0.2.0.tgz`，需要示例时再安装 `dsh-plugin-agentgamer-counting-0.2.0.tgz`。
+3. 按npm包名 `dsh-plugin-agentgamer` 安装主插件，也可使用Release中的 `dsh-plugin-agentgamer-0.2.0.tgz`。需要示例时再安装Release中的 `dsh-plugin-agentgamer-counting-0.2.0.tgz`；counting仍为可选本地包。
 4. 重启该profile，在 **AgentGamer** 重新选择模型或桌宠并连接。旧比赛和控制权不会恢复，原DSH历史仍由DSH保留。
 
 不要在同一Host同时启用两个品牌的旧／新主插件。安装、卸载均使用实际运行的同一profile，不需要重新填写模型API Key。

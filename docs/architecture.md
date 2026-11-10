@@ -20,6 +20,8 @@ Host持有完整规则状态、密码学随机种子及Frame随机流。浏览�
 
 Remote命名空间为 `agentgamer/request`，Host服务为 `agentgamer`，视图注册服务为 `agentgamerViews`。SDK API为1；Host与视图按游戏标识及实现版本匹配。
 
+安装包和客户端模块标识为 `dsh-agentgamer`，SDK导出路径为 `dsh-agentgamer/sdk`。原 `dsh-plugin-agentgamer` 是历史包名；更名不改变上述运行服务及数据目录，但同一Host只启用一个主包。
+
 模型工具只有 `agentgamer_read_rules`、`agentgamer_observe`、`agentgamer_act`、`agentgamer_say`。行动必须包含 `matchId / expectedRevision / requestId / action`，重复请求返回原回执；旧局请求不能进入新比赛。游戏聊天不改变比赛修订。
 
 模型唤醒由轮次、玩家聊天和手动重试驱动；无合法行动时结束回合。思考期间的新聊天有界排队，关闭／取消后不会再发出延迟唤醒。占用心跳只维护桌宠，不唤醒模型或推进规则。

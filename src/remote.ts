@@ -10,7 +10,7 @@ const text = {
 };
 export const remoteInfo = createTypertRemoteInfo(
   {
-    package: "dsh-plugin-agentgamer",
+    package: "dsh-agentgamer",
     methods: {
       "agentgamer/request": {
         service: "agentgamer",

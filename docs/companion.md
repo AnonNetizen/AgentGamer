@@ -1,10 +1,10 @@
-# dsh-pet 伙伴陪玩 · 0.2.0
+# dsh-pet 伙伴陪玩 · 0.2.1
 
 ## 安装与使用
 
-验证组合：DSH **0.2.2-rc.1**、[dsh-pet **0.4.7**](https://github.com/PC2005-cloud/dsh-pet)、AgentGamer **0.2.0**。dsh-pet 是可选插件，不是自动安装依赖。两个插件必须在同一 DSH Host／profile 启用；分别运行的两个 DSH 无法共享这次联动。
+验证组合：DSH **0.2.2-rc.1**、[dsh-pet **0.4.7**](https://github.com/PC2005-cloud/dsh-pet)、AgentGamer **0.2.1**。dsh-pet 是可选插件，不是自动安装依赖。两个插件必须在同一 DSH Host／profile 启用；分别运行的两个 DSH 无法共享这次联动。
 
-1. 在 DSH 添加插件时输入npm包名 `dsh-plugin-agentgamer`，或安装Release中的本地tgz，按提示重启。桌面版与浏览器版的命令示例见 [安装说明](../README.md#安装)。原有 dsh-pet 保持用户自己的配置，AgentGamer 不会自动升级或修改它。
+1. 在 DSH 添加插件时输入npm包名 `dsh-agentgamer`，或安装Release中的本地tgz，按提示重启。桌面版与浏览器版的命令示例见 [安装说明](../README.md#安装)。原有 dsh-pet 保持用户自己的配置，AgentGamer 不会自动升级或修改它。
 2. 在 AgentGamer 大厅选择对战模型，点“我的桌宠”→“刷新桌宠”，按种类和实例 ID 选择宠物。同名宠物通过 `entry / petId` 区分。
 3. 点“预览接入资料”，核对人设和近聊。再点“连接桌宠”，开始 21 点或双人吹牛骰。
 4. 完整比赛结束后可展开“公开战报预览”。只有点击“告诉桌宠”，才调用它的聊天模型、生成回复，并写入其聊天记忆。返回的文字在平台聊天中标为“战报回应”。

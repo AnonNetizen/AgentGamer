@@ -26,7 +26,7 @@ pnpm check:native
 
 ## 注册游戏
 
-SDK：`dsh-plugin-agentgamer/sdk`。Host以Cordis `inject: ['agentgamer']` 获取服务，并在生命周期effect内调用 `ctx.agentgamer.registerGame(definition)`。客户端以 `agentgamerViews` 注册视图，同时在包的 `dsh.client.inject / external` 声明主插件，复用宿主React。
+SDK：`dsh-agentgamer/sdk`。Host以Cordis `inject: ['agentgamer']` 获取服务，并在生命周期effect内调用 `ctx.agentgamer.registerGame(definition)`。客户端以 `agentgamerViews` 注册视图，同时在包的 `dsh.client.inject / external` 声明主插件，复用宿主React。
 
 `GameDefinition` 提供游戏标识、名称、游戏／规则版本、公开规则和 `create(matchId)`。对局实现：
 
@@ -42,10 +42,10 @@ SDK：`dsh-plugin-agentgamer/sdk`。Host以Cordis `inject: ['agentgamer']` 获�
 
 更新主包、counting版本、CHANGELOG与文档后运行 `pnpm release:local`。脚本先检查和构建，再打包两个tgz，审核实际归档路径、必要文件、品牌、依赖版本、Host边界与机器路径／凭据形态，生成SHA256SUMS。GitHub Release上传两个安装包与校验文件。
 
-主包另发布到npm，使用审核通过的同一tgz；0.2.0的npm产物与GitHub Release逐字节一致。先确认该版本尚未发布，再在发布者本机完成npm登录及其要求的2FA验证：
+主包 `dsh-agentgamer` 另发布到npm，使用审核通过的同一tgz。历史 `dsh-plugin-agentgamer@0.2.0` 的npm产物与原GitHub Release逐字节一致；新版本继续使用同一归档分发。先确认该版本尚未发布，再在发布者本机完成npm登录及其要求的2FA验证：
 
 ```powershell
-npm publish ./release/dsh-plugin-agentgamer-0.2.0.tgz --access public --ignore-scripts --registry=https://registry.npmjs.org/
+npm publish ./release/dsh-agentgamer-0.2.1.tgz --access public --ignore-scripts --registry=https://registry.npmjs.org/
 ```
 
 后续发行替换成相应的新版本文件名，不能覆盖已经发布的版本。发布后核对registry完整性字段与匿名下载的归档，并在隔离profile按包名安装验证。不要把登录凭据或恢复码加入仓库、日志及CI。当前CI只构建、检查与生成归档，不自动发布npm或插件市场；counting示例仍作为本地包交付。

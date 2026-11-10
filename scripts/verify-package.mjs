@@ -59,7 +59,9 @@ export function auditArchive(file, manifest) {
     throw Error("Release metadata mismatch");
   for (const name of ["README.md", "LICENSE", "cordis.patch.yml"])
     if (!entries.has(name)) throw Error("Missing release file: " + name);
-  if (manifest.name === "dsh-plugin-agentgamer") {
+  if (!entries.get("cordis.patch.yml").toString("utf8").includes(`name: ${manifest.name}\n`))
+    throw Error("Bundle patch package name mismatch");
+  if (manifest.name === "dsh-agentgamer") {
     for (const name of [
       "dist/host.js",
       "dist/client.js",
@@ -72,7 +74,7 @@ export function auditArchive(file, manifest) {
       if (!entries.has(name)) throw Error("Missing release file: " + name);
     const client = entries.get("dist/client.js").toString("utf8");
     if (
-      !client.includes('id:"dsh-plugin-agentgamer"') ||
+      !client.includes(`id:${JSON.stringify(manifest.name)}`) ||
       !client.includes("AgentGamer")
     )
       throw Error("Client brand/module ID mismatch");

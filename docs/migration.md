@@ -1,12 +1,25 @@
-# 从 RushAgent 升级到 AgentGamer 0.2.0
+# 升级到 AgentGamer 0.2.1
 
 AgentGamer是原RushAgent DSH插件的新产品名。本仓库只包含插件，使用新的包、服务、工具和Remote名称；游戏规则、SDK API 1、连续比赛和模型设置语义保持原样。
 
-## 安装顺序
+## 从 dsh-plugin-agentgamer 0.2.0 切换
+
+主包名从 `dsh-plugin-agentgamer` 简化为 `dsh-agentgamer`。先结束比赛并完全退出对应DSH；安装了旧counting时，先移除 `dsh-plugin-agentgamer-counting`，再移除旧主包。桌面版使用其自带CLI：
+
+```powershell
+dsh plugin --profile desktop remove dsh-plugin-agentgamer
+dsh plugin --profile desktop add dsh-agentgamer
+```
+
+浏览器版将 `desktop` 换成 `web`，自定义profile填写实际名称。原包和原v0.2.0发行附件保留；不要在同一Host同时启用新旧主包。需要示例时重新安装 `dsh-agentgamer-counting-0.2.1.tgz`。
+
+此次简化只改变包／模块标识：服务、Remote路由、游戏工具、SDK API 1和 `agentgamer/` 数据目录保持原样。显示偏好和战报队列继续使用原位置，旧任务编号／原文不改写。比赛与平台聊天仍只在内存中，关闭Host后结束；DSH原始历史继续保留。
+
+## 从旧版 RushAgent 安装
 
 1. 完成本次比赛并关闭／停止对应Host。
 2. 如果安装旧counting，先移除 `dsh-plugin-rushagent-counting`，再移除 `dsh-plugin-rushagent`。扩展依赖主包，倒序卸载可能使包管理器尝试从npm补装旧主包。
-3. 按npm包名 `dsh-plugin-agentgamer` 安装主插件，也可使用Release中的 `dsh-plugin-agentgamer-0.2.0.tgz`。需要示例时再安装Release中的 `dsh-plugin-agentgamer-counting-0.2.0.tgz`；counting仍为可选本地包。
+3. 按npm包名 `dsh-agentgamer` 安装主插件，也可使用Release中的 `dsh-agentgamer-0.2.1.tgz`。需要示例时再安装Release中的 `dsh-agentgamer-counting-0.2.1.tgz`；counting仍为可选本地包。
 4. 重启该profile，在 **AgentGamer** 重新选择模型或桌宠并连接。旧比赛和控制权不会恢复，原DSH历史仍由DSH保留。
 
 不要在同一Host同时启用两个品牌的旧／新主插件。安装、卸载均使用实际运行的同一profile，不需要重新填写模型API Key。
@@ -22,7 +35,7 @@ AgentGamer是原RushAgent DSH插件的新产品名。本仓库只包含插件，
 
 | 项目     | 旧名                   | 新名                    |
 | -------- | ---------------------- | ----------------------- |
-| 包／SDK  | `dsh-plugin-rushagent` | `dsh-plugin-agentgamer` |
+| 包／SDK  | `dsh-plugin-rushagent` | `dsh-agentgamer` |
 | Host服务 | `rushagent`            | `agentgamer`            |
 | 视图服务 | `rushagentViews`       | `agentgamerViews`       |
 | Remote   | `rushagent/request`    | `agentgamer/request`    |

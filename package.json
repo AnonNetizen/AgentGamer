@@ -1,6 +1,6 @@
 {
-  "name": "dsh-plugin-agentgamer",
-  "version": "0.2.0",
+  "name": "dsh-agentgamer",
+  "version": "0.2.1",
   "description": "在 DeepSeek Harness 中与 AI 或桌宠伙伴面对面玩游戏",
   "type": "module",
   "license": "MIT",

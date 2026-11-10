@@ -2,6 +2,8 @@
 
 AgentGamer 0.2.0的验证流程：独立安装锁定依赖、TypeScript与规则／Host测试、构建、实际tgz归档审核，以及隔离的DSH 0.2.2-rc.1原生AgentLoop和页面检查。
 
+下方保留0.2.0历史记录；0.2.1包名简化的验证见末节。
+
 普通检查不依赖Godot或.NET；历史规则来源使用80场合成黄金轨迹。真实宿主检查通过模拟模型进行，不请求真实供应商API，也不代表模型策略、计费Token或实际窗口手感。
 
 验证日期：2026-11-10。Node 24.21.0，pnpm 11.28.5，Windows x64。
@@ -58,3 +60,11 @@ CI工作流在Windows和Linux上重新安装锁定依赖、构建并审核两个
 - 使用真实DSH CLI在隔离 `agentgamer-test` profile执行 `add dsh-plugin-agentgamer` 成功，依赖登记为 `^0.2.0`，bundle自动登记。安装出的Host、客户端、SDK和patch与已测试产物一致。
 - 从此次registry安装启动DSH Host成功；实际调用 `agentgamer/request` 的 `snapshot`，正确返回21点1.0.1与吹牛骰1.0.0，未启动对局或调用供应商模型。
 - 本次只增加分发渠道及安装文档，规则与运行代码保持原样；原v0.2.0标签及GitHub Release附件不替换。安装检查未修改日常工作profile。
+
+## 0.2.1 包名简化验证（2026-11-10）
+
+- 主包改为 `dsh-agentgamer`，本地扩展改为 `dsh-agentgamer-counting`；清单、bundle、Remote包描述符和客户端模块标识一致，SDK导出路径为 `dsh-agentgamer/sdk`。
+- TypeScript、35/35测试、80场规则黄金轨迹、构建及两个实际tgz审核通过。历史基线和黄金数据未改写。
+- 真实DSH AgentLoop、连续对战、跨游戏、聊天队列、错误／取消与Token基准回归通过；调用数和输入字节结果与0.2.0记录一致。
+- 在隔离profile安装新名字的两个完整本地包，实际加载新主客户端和扩展模块；公开聊天、Agent工具行动、counting完整比赛及切换21点通过，旧战报确认状态保留。
+- 1920×1080页面检查确认样式、三游戏目录和牌桌正常。本次没有布局或规则改动，0.2.0代表截图继续适用。新旧主插件按迁移说明切换，原发布包继续保留。

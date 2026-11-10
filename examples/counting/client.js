@@ -1,8 +1,8 @@
 window.__ModuleLoader__.load({
-  id: "dsh-plugin-agentgamer-counting",
+  id: "dsh-agentgamer-counting",
   factory: (require) => {
     const React = require("react");
-    require("dsh-plugin-agentgamer");
+    require("dsh-agentgamer");
     const h = React.createElement;
     function Counting({ observation: o, busy, act, rematch, leave }) {
       const controls =

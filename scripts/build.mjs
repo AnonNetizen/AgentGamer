@@ -1,10 +1,11 @@
 import { build } from "esbuild";
-import { mkdir, writeFile, cp, rm } from "node:fs/promises";
+import { mkdir, writeFile, readFile, cp, rm } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 process.chdir(root);
+const packageName = JSON.parse(await readFile("package.json", "utf8")).name;
 const output = resolve(root, "dist");
 if (dirname(output) !== root) throw new Error("Invalid build directory");
 await rm(output, { recursive: true, force: true });
@@ -33,7 +34,7 @@ const client = await build({
 });
 await writeFile(
   "dist/client.js",
-  `window.__ModuleLoader__.load({id:"dsh-plugin-agentgamer",factory:(require)=>{var module={exports:{}};var exports=module.exports;\n${client.outputFiles[0].text}\nreturn module.exports;}});\n`,
+  `window.__ModuleLoader__.load({id:${JSON.stringify(packageName)},factory:(require)=>{var module={exports:{}};var exports=module.exports;\n${client.outputFiles[0].text}\nreturn module.exports;}});\n`,
 );
 execFileSync(
   process.execPath,

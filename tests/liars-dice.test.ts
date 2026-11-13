@@ -9,7 +9,7 @@ import {
 } from "../src/rules/liars-dice.js";
 import { AgentGamerPlatform } from "../src/platform.js";
 import { projectAgentContext } from "../src/agent-memory.js";
-import type { Actor, Action, Observation } from "../src/sdk.js";
+import type { DuelActor as Actor, Action, Observation } from "../src/sdk.js";
 const rolls = () =>
   Array.from({ length: 5 }, () => [
     [6, 6, 6, 6, 6],

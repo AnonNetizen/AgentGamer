@@ -24,8 +24,7 @@ export function apply(ctx) {
         yield { type: "finish", reason: { kind: "stop" } };
         return;
       }
-      const p = ctx.agentgamer.platform,
-        o = p.observeAgent().observation;
+      const p = ctx.agentgamer.platform;
       const gameCall =
         Array.isArray(options.tools) &&
         options.tools.some((t) => t.name === "agentgamer_act");
@@ -80,11 +79,16 @@ export function apply(ctx) {
         }
         if (packet.humanChat.length) break;
       }
-      const through = delivered.get(p.sessionId) ?? 0;
+      const seat = packet.seat ?? "agent";
+      const session =
+        p.snapshot().opponents?.find((s) => s.seat === seat)?.sessionId ??
+        p.sessionId;
+      const o = p.observeAgent(seat).observation;
+      const through = delivered.get(session) ?? 0;
       let call;
       if (o?.actions.length) {
         const a = o.actions[0];
-        const range = a.kind === "bid" ? a.options[0] : null;
+        const range = a.kind === "bid" && a.options ? a.options[0] : null;
         call = {
           name: "agentgamer_act",
           arguments: JSON.stringify({
@@ -98,16 +102,22 @@ export function apply(ctx) {
                   face: range.face,
                   mode: range.mode,
                 }
-              : a.kind === "bet"
-                ? { kind: "bet", amount: 10 }
-                : a.kind === "add"
-                  ? { kind: "add", amount: 1 }
-                  : { kind: "stand" },
+              : a.kind === "bid" && a.scores
+                ? { kind: "bid", score: Math.max(...a.scores) }
+                : a.kind === "play"
+                  ? { kind: "play", cards: a.suggestions[0] }
+                  : a.kind === "pass"
+                    ? { kind: "pass" }
+                    : a.kind === "bet"
+                      ? { kind: "bet", amount: 10 }
+                      : a.kind === "add"
+                        ? { kind: "add", amount: 1 }
+                        : { kind: "stand" },
           }),
         };
       } else if (packet.humanChat.some((m) => m.sequence > through)) {
         delivered.set(
-          p.sessionId,
+          session,
           Math.max(...packet.humanChat.map((m) => m.sequence)),
         );
         call = {

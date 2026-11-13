@@ -23,6 +23,7 @@ export function agentMetadata(game: GameDefinition): AgentGameMetadata {
     name: game.name,
     version: game.version,
     rulesVersion: game.rulesVersion,
+    ...(game.agentSeats ? { agentSeats: game.agentSeats } : {}),
   };
 }
 export function projectAgentContext(
@@ -71,7 +72,7 @@ export function boundedMemory(
   const memory: AgentMemory = {
     chat: clone(
       messages
-        .filter((m) => m.sender === "agent" || m.sequence <= delivered)
+        .filter((m) => m.sender !== "human" || m.sequence <= delivered)
         .slice(-20),
     ),
     results: clone(

@@ -185,7 +185,7 @@ try {
   );
   assert.equal(
     ctx.sessionTitle.get(ctx.sessions.get(session)).title,
-    "AgentGamer 对战",
+    "AgentGamer 对战 · 对手 1",
   );
   for (let n = 0; n < 2; n++) {
     assert.equal((await p.start("blackjack")).accepted, true);

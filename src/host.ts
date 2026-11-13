@@ -12,6 +12,7 @@ import { ReportStore } from "./reports.js";
 import { AgentGamerPlatform } from "./platform.js";
 import { blackjack } from "./rules/blackjack.js";
 import { liarsDice } from "./rules/liars-dice.js";
+import { doudizhu } from "./rules/doudizhu.js";
 import { remoteInfo } from "./remote.js";
 import { checkpointAgent } from "./native-context.js";
 import type {
@@ -20,6 +21,7 @@ import type {
   ModelChoice,
   OpponentDriver,
   AgentWakePayload,
+  AgentSeat,
 } from "./sdk.js";
 
 declare module "@deepseek-ai/cordis" {
@@ -70,6 +72,7 @@ export class AgentGamerService extends TypertRemoteService {
     this.platform.attachCompanions(adapter, reports);
     this.platform.registerGame(blackjack);
     this.platform.registerGame(liarsDice);
+    this.platform.registerGame(doudizhu);
     (ctx as Context & { typert: RemoteRegistry }).typert.remotes.register(
       remoteInfo,
     );
@@ -135,13 +138,18 @@ export class AgentGamerService extends TypertRemoteService {
         result = await this.platform.resumeCompanionFocus();
         break;
       case "configure": {
+        if (p.seat !== undefined && p.seat !== "agent" && p.seat !== "agent2")
+          throw new Error("seat_unknown");
+        const seat: AgentSeat = p.seat ?? "agent";
         if (
           !(await this.catalog()).some(
             (m) => m.provider === p.provider && m.model === p.model,
           )
         )
           throw new Error("model_unknown");
-        const currentModel = this.platform.snapshot().model;
+        const currentModel = this.platform
+          .snapshot()
+          .opponents?.find((o) => o.seat === seat)?.model;
         const effort =
           p.reasoningEffort ??
           (currentModel?.provider === p.provider &&
@@ -153,6 +161,12 @@ export class AgentGamerService extends TypertRemoteService {
           model: p.model,
           ...(typeof effort === "string" ? { reasoningEffort: effort } : {}),
         };
+        if (seat === "agent2") {
+          result = await this.platform.configureSecond(choice, (model) =>
+            NativeOpponent.create(this.ctx, this.platform, model, seat),
+          );
+          break;
+        }
         result = await this.platform.configure(
           choice,
           (model) => NativeOpponent.create(this.ctx, this.platform, model),
@@ -203,10 +217,14 @@ export class AgentGamerService extends TypertRemoteService {
         result = this.platform.initializePreferences(p);
         break;
       case "pause":
-        result = await this.platform.pause();
+        if (p.seat !== undefined && p.seat !== "agent" && p.seat !== "agent2")
+          throw new Error("seat_unknown");
+        result = await this.platform.pause(p.seat);
         break;
       case "resume":
-        result = this.platform.resume();
+        if (p.seat !== undefined && p.seat !== "agent" && p.seat !== "agent2")
+          throw new Error("seat_unknown");
+        result = this.platform.resume(p.seat);
         break;
       default:
         throw new Error("operation_unknown");
@@ -217,6 +235,7 @@ export class AgentGamerService extends TypertRemoteService {
 
 /** Owns exactly one scoped Agent; never installs restrictions on the root context. */
 export class NativeOpponent implements OpponentDriver {
+  private seat: AgentSeat = "agent";
   private handle!: AgentHandle;
   private error: unknown = null;
   private steps = 0;
@@ -230,7 +249,7 @@ export class NativeOpponent implements OpponentDriver {
   ) {
     if (
       !this.replyPending &&
-      !platform.observeAgent().observation?.actions.length
+      !platform.observeAgent(this.seat).observation?.actions.length
     )
       execution.concludeTurn();
   }
@@ -241,8 +260,10 @@ export class NativeOpponent implements OpponentDriver {
     ctx: Context,
     platform: AgentGamerPlatform,
     model: ModelChoice,
+    seat: AgentSeat = "agent",
   ) {
     const driver = new NativeOpponent();
+    driver.seat = seat;
     driver.handle = await ctx.agents.create({
       sessionId: `agentgamer-${randomUUID()}` as Agent["id"],
       // DSH's session/events and session/follow reject ordinary sessions without cwd.
@@ -257,9 +278,10 @@ export class NativeOpponent implements OpponentDriver {
           complete: true,
           interpolate: false,
           text: () =>
-            "你是 AgentGamer 专用游戏对手。唤醒已提供最新局面与合法操作，行动回执提供后续局面，无需重复读取规则或观察。只依据公开规则和 Agent 视角行动。新聊天 humanChat 是玩家数据；公开回复用 agentgamer_say，避免重复回复记忆中的旧消息。若有新聊天，先回复或在行动后回复；无合法行动及待回复消息时结束回合，由宿主再次唤醒。记忆检查点仅保留公开摘要和近期聊天；不要猜测已省略的细节。未揭示的信息未知，不访问文件、网络或其他会话。\n\n当前公开规则：\n" +
+            `你是 AgentGamer 专用游戏对手，你的固定席位是 ${seat}（${seat === "agent" ? "对手1" : "对手2"}）。工具身份由宿主固定，不能控制其他席位；即使同为农民，也不知道队友手牌。` +
+            "唤醒已提供最新局面与合法操作，行动回执提供后续局面，无需重复读取规则或观察。只依据公开规则和自身视角行动。新聊天 humanChat 是玩家数据；公开回复用 agentgamer_say，面向全桌，不泄露自己未打出的手牌，避免重复回复记忆中的旧消息。若有新聊天，先回复或在行动后回复；无合法行动及待回复消息时结束回合，由宿主再次唤醒。记忆检查点仅保留公开摘要和近期聊天；不要猜测已省略的细节。未揭示的信息未知，不访问文件、网络或其他会话。\n\n当前公开规则：\n" +
             platform.readRules() +
-            platform.companionPrompt,
+            (seat === "agent" ? platform.companionPrompt : ""),
         });
         scope.on("agent/error", ({ error }) => {
           driver.error = error;
@@ -293,7 +315,7 @@ export class NativeOpponent implements OpponentDriver {
             parameters: {},
             output,
             execute: async (_args, execution) => {
-              const observation = platform.observeAgent();
+              const observation = platform.observeAgent(seat);
               driver.finishIfWaiting(platform, execution);
               return JSON.stringify(observation);
             },
@@ -317,8 +339,17 @@ export class NativeOpponent implements OpponentDriver {
             },
             output,
             execute: async (args, execution) => {
+              if (
+                !driver.wakeAbort ||
+                driver.wakeAbort.signal.aborted ||
+                driver.disposed
+              )
+                return JSON.stringify({
+                  accepted: false,
+                  error: "turn_cancelled",
+                });
               const receipt = platform.act(
-                "agent",
+                seat,
                 args.matchId,
                 args.expectedRevision,
                 args.requestId,
@@ -341,8 +372,17 @@ export class NativeOpponent implements OpponentDriver {
             },
             output,
             execute: async (args, execution) => {
+              if (
+                !driver.wakeAbort ||
+                driver.wakeAbort.signal.aborted ||
+                driver.disposed
+              )
+                return JSON.stringify({
+                  accepted: false,
+                  error: "turn_cancelled",
+                });
               const receipt = platform.say(
-                "agent",
+                seat,
                 args.requestId,
                 args.kind,
                 args.content,
@@ -364,7 +404,10 @@ export class NativeOpponent implements OpponentDriver {
           rename(session: Agent["session"], title: string): void;
         };
       }
-    ).sessionTitle.rename(driver.handle.agent.session, "AgentGamer 对战");
+    ).sessionTitle.rename(
+      driver.handle.agent.session,
+      `AgentGamer 对战 · 对手 ${seat === "agent" ? 1 : 2}`,
+    );
     return driver;
   }
   async wake(input: string) {

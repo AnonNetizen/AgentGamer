@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 import {
   clone,
   type Action,
-  type Actor,
+  type DuelActor as Actor,
   type GameDefinition,
   type GameMatch,
   type Observation,

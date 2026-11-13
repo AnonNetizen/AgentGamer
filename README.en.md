@@ -4,7 +4,7 @@
 
 Play card and dice games against AI or your pet companion inside **DeepSeek Harness (DSH)**.
 
-AgentGamer includes **Blackjack** and **Liar's Dice**, with a lobby, public match history, text and emoji chat, and an API for adding Web games. Use the models and reasoning settings you already configured in DSH, without entering another API key.
+AgentGamer includes **Blackjack**, **Liar's Dice**, and **Dou Dizhu**, with a lobby, public match history, text and emoji chat, and an API for adding Web games. Use the models and reasoning settings you already configured in DSH, without entering another API key.
 
 [Install from npm](https://www.npmjs.com/package/dsh-agentgamer) · [Release downloads](https://github.com/AnonNetizen/AgentGamer/releases/latest) · [Migration guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md) · [Pet integration](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/companion.md) · [Development guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/development.md)
 
@@ -37,7 +37,7 @@ dsh plugin --profile web add dsh-agentgamer
 
 `desktop` and `web` are profile names. Install into the profile you actually run; for a custom profile, use its name. Reopen the corresponding DSH after installation. Pet integration also requires both plugins to run in the same Host.
 
-For manual package installation, download `dsh-agentgamer-0.2.1.tgz` from [Releases](https://github.com/AnonNetizen/AgentGamer/releases) and replace the package name in the command with `./dsh-agentgamer-0.2.1.tgz`. If the sidebar entry is missing, check that the profile's `dsh.profile.bundles` includes `dsh-agentgamer`.
+For manual package installation, download `dsh-agentgamer-0.3.0.tgz` from [Releases](https://github.com/AnonNetizen/AgentGamer/releases) and replace the package name in the command with `./dsh-agentgamer-0.3.0.tgz`. If the sidebar entry is missing, check that the profile's `dsh.profile.bundles` includes `dsh-agentgamer`.
 
 To uninstall from Desktop, fully quit the app and run:
 
@@ -53,10 +53,13 @@ Use `web` instead of `desktop` for the Web profile. When upgrading from either `
 | --- | --- | --- |
 | [Blackjack](https://github.com/AnonNetizen/AgentGamer/blob/main/rules/blackjack.md) | 1.0.0 | Each player starts with 1,000 chips. Alternate dealer roles for up to 10 hands. A natural Blackjack pays 3:2. |
 | [Liar's Dice](https://github.com/AnonNetizen/AgentGamer/blob/main/rules/liars-dice.md) | 1.0.0 | Five dice per player each round, first to three wins. Ones are wild in ordinary bids; straight bids count each face as itself. |
+| [Dou Dizhu](https://github.com/AnonNetizen/AgentGamer/blob/main/rules/doudizhu.md) | 1.0.0 | One human and two independent model opponents. Bid for landlord; bombs, rockets, and spring multiply the single-game score. |
 
 You control your bets, hit or stand decisions, bids and challenges, and when to start the next hand or round. The Host executes the rules and holds the full state. The model acts through four scoped game tools and receives its own observation. Dealer hole cards and opposing dice stay hidden until the rules reveal them; the shoe order and random state remain on the Host.
 
 Keep the same dedicated Agent session across consecutive matches and game switches. Messages sent while the model is processing a turn wait in a queue. Model errors preserve the game state so you can pause and retry. The chat panel shows public messages; open the battle session (`对战会话`) to inspect the Agent's reasoning and tool traces.
+
+For Dou Dizhu, connect opponent 1 as a regular model, then select and connect **opponent 2** (`对手 2 模型`). They may use the same or different models, but each has a separate DSH session, hand, memory checkpoint, and retry state. Farmers share the result without seeing each other's cards. Human table chat is delivered to both; model replies do not automatically wake the other model. The table offers card selection, hints, pass, public play history, and separate session controls. Finish one game, then play again or return to the lobby. Pet opponents remain available for the existing two-player games; Dou Dizhu does not support pets yet. See the [Dou Dizhu guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/doudizhu.md).
 
 ## Play with your pet
 
@@ -93,7 +96,7 @@ Checks cover TypeScript, rules and Host tests, 80 synthetic golden match traces 
 
 See the [development guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/development.md), [architecture](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/architecture.md), and [verification record](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/verification.md) for optional native AgentLoop, performance, and UI checks. CI builds and audits packages on Windows and Linux. Runtime and window checks use an isolated Windows DSH profile with mock models; those results do not measure provider model strategy or billed tokens.
 
-Register another game from a separate DSH plugin without rebuilding AgentGamer. SDK API version 1 is exported from `dsh-agentgamer/sdk`. The [counting example](https://github.com/AnonNetizen/AgentGamer/blob/main/examples/counting/README.md) demonstrates Host rules and a client view. Its package, `dsh-agentgamer-counting-0.2.1.tgz`, is an optional local extension; the main package already includes Blackjack and Liar's Dice.
+Register another game from a separate DSH plugin without rebuilding AgentGamer. SDK API version 1 is exported from `dsh-agentgamer/sdk`. The [counting example](https://github.com/AnonNetizen/AgentGamer/blob/main/examples/counting/README.md) demonstrates Host rules and a client view. Its package, `dsh-agentgamer-counting-0.3.0.tgz`, is an optional local extension; the main package already includes all three games.
 
 ## License
 

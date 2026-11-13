@@ -4,7 +4,7 @@
 
 在 **DeepSeek Harness（DSH）** 里，和 AI 或自己的桌宠伙伴面对面玩游戏。
 
-内置 **21 点** 和 **双人吹牛骰**，提供大厅、公开记录、文字／Emoji 聊天和 Web 游戏扩展接口。直接使用 DSH 已配置的模型与思考设置，无须另填 API Key。
+内置 **21 点**、**双人吹牛骰**和**斗地主**，提供大厅、公开记录、文字／Emoji 聊天和 Web 游戏扩展接口。直接使用 DSH 已配置的模型与思考设置，无须另填 API Key。
 
 [npm 安装](https://www.npmjs.com/package/dsh-agentgamer) · [离线发行包](https://github.com/AnonNetizen/AgentGamer/releases/latest) · [升级与迁移](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md) · [桌宠陪玩](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/companion.md) · [开发接入](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/development.md)
 
@@ -35,7 +35,7 @@ dsh plugin --profile web add dsh-agentgamer
 
 `desktop`／`web` 是运行配置名称，插件应安装到实际使用的同一 profile。自定义配置则填写启动时的名称。安装后重新打开对应 DSH；桌宠联动也要求两个插件启用在同一 Host。
 
-需要离线包时，仍可从 [Releases](https://github.com/AnonNetizen/AgentGamer/releases) 下载 `dsh-agentgamer-0.2.1.tgz`，将上述命令中的包名换成 `./dsh-agentgamer-0.2.1.tgz`。如果侧栏没有入口，检查该 profile 的 `dsh.profile.bundles` 是否包含 `dsh-agentgamer`。
+需要离线包时，仍可从 [Releases](https://github.com/AnonNetizen/AgentGamer/releases) 下载 `dsh-agentgamer-0.3.0.tgz`，将上述命令中的包名换成 `./dsh-agentgamer-0.3.0.tgz`。如果侧栏没有入口，检查该 profile 的 `dsh.profile.bundles` 是否包含 `dsh-agentgamer`。
 
 卸载示例（浏览器版将 `desktop` 换成 `web`）：
 
@@ -51,8 +51,11 @@ dsh plugin --profile desktop remove dsh-agentgamer
 | --------------------------------- | ----- | ---------------------------------------------------- |
 | [21 点](https://github.com/AnonNetizen/AgentGamer/blob/main/rules/blackjack.md)       | 1.0.0 | 起始各1000筹码，最多10手，轮流坐庄，Blackjack净赔3:2 |
 | [双人吹牛骰](https://github.com/AnonNetizen/AgentGamer/blob/main/rules/liars-dice.md) | 1.0.0 | 每局各5骰，五局三胜，1作万能点，支持斋／飞与围骰     |
+| [斗地主](https://github.com/AnonNetizen/AgentGamer/blob/main/rules/doudizhu.md) | 1.0.0 | 一名玩家＋两个独立模型席位，叫分选地主，单局结算，炸弹与春天计分 |
 
-玩家控制下注、要牌／停牌、叫点／质疑及下一手／下一局。模型通过四个限定工具取得自身视角和执行行动；暗牌、对方未揭示骰面和随机状态保留在 Host。
+玩家控制下注、要牌／停牌、叫点／质疑、斗地主叫分与选牌，以及下一手／下一局。模型通过四个限定工具取得自身视角和执行行动；暗牌、对方未揭示骰面和随机状态保留在 Host。
+
+斗地主先将对手1连接为普通模型，再单独选择并连接“对手2模型”；可以选相同或不同模型，两个会话始终分别持牌与行动。牌桌可分别查看会话、暂停或重试；农民共同胜负，但互不读取手牌。详见[斗地主与双模型](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/doudizhu.md)。斗地主暂不接桌宠。
 
 同一对手跨比赛、跨游戏复用专用会话。模型思考期间的聊天按顺序排队；模型错误时保留局面，可以暂停和重试。只有公开发言进入聊天栏，原始推理与工具轨迹可从“对战会话”查看。
 
@@ -87,7 +90,7 @@ pnpm release:local
 
 可选真实 DSH AgentLoop、性能和页面联调见 [开发说明](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/development.md)，[架构](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/architecture.md) 与 [验证记录](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/verification.md)。CI在 Windows 和 Linux 上运行常规发行检查；真实宿主与窗口验证使用隔离的 Windows DSH 配置和模拟模型，不代表供应商策略或计费Token。
 
-新增游戏可由另一个DSH插件注册，无须重编译主插件。SDK API保持1，最小示例在 [examples/counting](https://github.com/AnonNetizen/AgentGamer/blob/main/examples/counting/README.md)；对应独立包为 `dsh-agentgamer-counting-0.2.1.tgz`，不安装也能玩两款内置游戏。
+新增游戏可由另一个DSH插件注册，无须重编译主插件。SDK API保持1，最小示例在 [examples/counting](https://github.com/AnonNetizen/AgentGamer/blob/main/examples/counting/README.md)；对应独立包为 `dsh-agentgamer-counting-0.3.0.tgz`，不安装也能玩三款内置游戏。
 
 ## 许可证
 

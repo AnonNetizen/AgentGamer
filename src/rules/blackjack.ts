@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type {
-  Actor,
+  DuelActor as Actor,
   Action,
   GameDefinition,
   GameMatch,

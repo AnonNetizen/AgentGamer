@@ -71,6 +71,7 @@ export function auditArchive(file, manifest) {
       "docs/companion.md",
       "rules/blackjack.md",
       "rules/liars-dice.md",
+      "rules/doudizhu.md",
     ])
       if (!entries.has(name)) throw Error("Missing release file: " + name);
     const client = entries.get("dist/client.js").toString("utf8");

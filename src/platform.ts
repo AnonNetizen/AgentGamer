@@ -4,6 +4,7 @@ import {
   EMOJI,
   type Action,
   type Actor,
+  type AgentSeat,
   type ChatMessage,
   type DisplayPreferences,
   type GameDefinition,
@@ -55,14 +56,119 @@ const metadata = (game: GameDefinition): GameMetadata => ({
   version: game.version,
   rulesVersion: game.rulesVersion,
   rules: game.rules,
+  ...(game.agentSeats ? { agentSeats: game.agentSeats } : {}),
 });
 const segmenter = new Intl.Segmenter("zh", { granularity: "grapheme" });
 export const textLength = (value: string) =>
   [...segmenter.segment(value)].length;
 
+interface OpponentState {
+  driver: OpponentDriver | null;
+  model: ModelChoice | null;
+  status: PlatformSnapshot["agentStatus"];
+  error: string;
+  paused: boolean;
+  pending: boolean;
+  running: boolean;
+  attempts: Map<string, number>;
+  delivered: number;
+  results: AgentMatchMemory[];
+  generation: number;
+}
+const opponentState = (): OpponentState => ({
+  driver: null,
+  model: null,
+  status: "unconfigured",
+  error: "",
+  paused: false,
+  pending: false,
+  running: false,
+  attempts: new Map(),
+  delivered: 0,
+  results: [],
+  generation: 0,
+});
+
 /** Authoritative Host-only state. Neither views nor model tools receive an engine reference. */
 export class AgentGamerPlatform {
   readonly instanceId = randomUUID();
+  #opponents: Record<AgentSeat, OpponentState> = {
+    agent: opponentState(),
+    agent2: opponentState(),
+  };
+  // Legacy single-opponent accessors keep API-1 games and companion behavior unchanged.
+  get #driver() {
+    return this.#opponents.agent.driver;
+  }
+  set #driver(value: OpponentState["driver"]) {
+    this.#opponents.agent.driver = value;
+  }
+  get #model() {
+    return this.#opponents.agent.model;
+  }
+  set #model(value: OpponentState["model"]) {
+    this.#opponents.agent.model = value;
+  }
+  get #status() {
+    return this.#opponents.agent.status;
+  }
+  set #status(value: OpponentState["status"]) {
+    this.#opponents.agent.status = value;
+  }
+  get #error() {
+    return this.#opponents.agent.error;
+  }
+  set #error(value: OpponentState["error"]) {
+    this.#opponents.agent.error = value;
+  }
+  get #pendingWake() {
+    return this.#opponents.agent.pending;
+  }
+  set #pendingWake(value: OpponentState["pending"]) {
+    this.#opponents.agent.pending = value;
+  }
+  get #attempts() {
+    return this.#opponents.agent.attempts;
+  }
+  set #attempts(value: OpponentState["attempts"]) {
+    this.#opponents.agent.attempts = value;
+  }
+  get #chatDelivered() {
+    return this.#opponents.agent.delivered;
+  }
+  set #chatDelivered(value: OpponentState["delivered"]) {
+    this.#opponents.agent.delivered = value;
+  }
+  get #results() {
+    return this.#opponents.agent.results;
+  }
+  set #results(value: OpponentState["results"]) {
+    this.#opponents.agent.results = value;
+  }
+  #enabledSeats(): AgentSeat[] {
+    return this.#current?.definition.agentSeats === 2
+      ? ["agent", "agent2"]
+      : ["agent"];
+  }
+  async #cancelAll() {
+    for (const s of Object.values(this.#opponents)) s.pending = false;
+    await Promise.all(
+      Object.values(this.#opponents).map((s) => s.driver?.cancel()),
+    );
+    for (const s of Object.values(this.#opponents))
+      if (s.status === "running")
+        s.status =
+          this.#paused || s.paused
+            ? "paused"
+            : s.driver
+              ? "idle"
+              : "unconfigured";
+  }
+  #wakeReady() {
+    for (const seat of this.#enabledSeats())
+      if (this.#agentCanAct(seat)) this.#wake(seat);
+  }
+
   #games = new Map<string, GameDefinition>();
   #current: {
     definition: GameDefinition;
@@ -70,9 +176,6 @@ export class AgentGamerPlatform {
     remembered?: boolean;
     companion?: CompanionDisplay | null;
   } | null = null;
-  #results: AgentMatchMemory[] = [];
-  #driver: OpponentDriver | null = null;
-  #model: ModelChoice | null = null;
   #messages: ChatMessage[] = [];
   #chatSequence = 0;
   #humanRead = 0;
@@ -80,15 +183,9 @@ export class AgentGamerPlatform {
   #cursor = 0;
   #listeners = new Set<() => void>();
   #waiters = new Set<() => void>();
-  #status: PlatformSnapshot["agentStatus"] = "unconfigured";
-  #error = "";
   #paused = false;
   #disposed = false;
-  #pendingWake = false;
-  #running = false;
   #generation = 0;
-  #attempts = new Map<string, number>();
-  #chatDelivered = 0;
   #companion: CompanionPreview | null = null;
   #personaOverride: string | undefined;
   #companionMemories = new Map<
@@ -151,9 +248,15 @@ export class AgentGamerPlatform {
   #companionKey() {
     return this.#companion?.display.key ?? "default";
   }
-  #ownMessages() {
+  #ownMessages(seat: AgentSeat = "agent") {
+    if (seat === "agent2")
+      return this.#messages.filter((m) => m.companionKey === "table");
     const key = this.#companionKey();
-    return this.#messages.filter((m) => (m.companionKey ?? "default") === key);
+    return this.#messages.filter(
+      (m) =>
+        (m.companionKey ?? "default") === key ||
+        (key === "default" && m.companionKey === "table"),
+    );
   }
   async listCompanions() {
     if (!this.#adapter) throw Error("伙伴接入不可用。");
@@ -248,6 +351,8 @@ export class AgentGamerPlatform {
       !/^[a-z][a-z0-9_.-]{0,79}$/.test(definition.id) ||
       !definition.version ||
       !definition.rules ||
+      (definition.agentSeats !== undefined &&
+        ![1, 2].includes(definition.agentSeats)) ||
       typeof definition.create !== "function"
     )
       throw new Error("game_definition");
@@ -262,7 +367,7 @@ export class AgentGamerPlatform {
         void this.#effects?.select(this.#companion?.display ?? null);
         this.#generation++;
         this.#pendingWake = false;
-        void this.#driver?.cancel();
+        void this.#cancelAll();
         this.#status = this.#driver ? "idle" : "unconfigured";
         this.#error = "游戏模块已卸载，比赛已取消。";
       }
@@ -270,7 +375,32 @@ export class AgentGamerPlatform {
     };
   }
   snapshot(): PlatformSnapshot {
+    const seats = this.#enabledSeats();
+    const states = seats.map((seat) => this.#opponents[seat]);
+    const status = this.#paused
+      ? "paused"
+      : states.some((s) => s.status === "error")
+        ? "error"
+        : states.some((s) => s.status === "running")
+          ? "running"
+          : states.some((s) => s.status === "paused")
+            ? "paused"
+            : this.#status;
     return clone({
+      opponents: (["agent", "agent2"] as AgentSeat[]).map((seat) => ({
+        seat,
+        name:
+          seat === "agent"
+            ? (this.#companion?.display.name ?? "对手 1")
+            : "对手 2",
+        sessionId: this.#opponents[seat].driver?.sessionId ?? null,
+        model: this.#opponents[seat].model,
+        status:
+          this.#paused && this.#opponents[seat].driver
+            ? "paused"
+            : this.#opponents[seat].status,
+        error: this.#opponents[seat].error,
+      })),
       instanceId: this.instanceId,
       cursor: this.#cursor,
       games: [...this.#games.values()].map(metadata),
@@ -278,13 +408,16 @@ export class AgentGamerPlatform {
       observation: this.#current?.match.observe("human") ?? null,
       sessionId: this.sessionId,
       model: this.#model,
-      agentStatus: this.#status,
-      error: this.#error,
+      agentStatus: status,
+      error: seats
+        .map((seat) => this.#opponents[seat].error)
+        .filter(Boolean)
+        .join("；"),
       messages: this.#messages,
       chatSequence: this.#chatSequence,
       humanReadSequence: this.#humanRead,
       unread: this.#messages.filter(
-        (m) => m.sender === "agent" && m.sequence > this.#humanRead,
+        (m) => m.sender !== "human" && m.sequence > this.#humanRead,
       ).length,
       truncated: this.#chatSequence > 1000,
       preferences: this.preferences,
@@ -295,7 +428,7 @@ export class AgentGamerPlatform {
       report: this.#report,
       reportJobs: this.#reportStore?.list() ?? [],
       reportError: this.#reportStore?.error ?? "",
-      ...(this.#companion
+      ...(this.#companion && this.#current?.definition.agentSeats !== 2
         ? {
             companionFeedback: this.#effects?.snapshot(),
             companionFocus: this.#effects?.focus.snapshot(),
@@ -303,35 +436,39 @@ export class AgentGamerPlatform {
         : {}),
     });
   }
-  observeAgent() {
+  observeAgent(seat: AgentSeat = "agent") {
     return clone({
       game: this.#current ? agentMetadata(this.#current.definition) : null,
-      observation: this.#agentObservation(),
-      paused: this.#paused,
+      observation: this.#agentObservation(seat),
+      paused: this.#paused || this.#opponents[seat].paused,
     });
   }
-  #agentObservation() {
-    return this.#current
+  #agentObservation(seat: AgentSeat = "agent") {
+    return this.#current && this.#enabledSeats().includes(seat)
       ? projectAgentContext(
           this.#current.definition,
-          this.#current.match.observe("agent"),
+          this.#current.match.observe(seat),
         ).observation
       : null;
   }
   #rememberFinished() {
     const current = this.#current;
     if (!current || current.remembered) return;
+    if (current.match.observe("human").phase !== "finished") return;
+    for (const seat of this.#enabledSeats()) {
+      const visible = current.match.observe(seat);
+      const { summary } = projectAgentContext(current.definition, visible);
+      const state = this.#opponents[seat];
+      state.results.push({
+        game: agentMetadata(current.definition),
+        matchId: visible.matchId,
+        timestamp: new Date().toISOString(),
+        outcome: visible.outcome,
+        ...(summary === undefined ? {} : { summary }),
+      });
+      state.results = state.results.slice(-3);
+    }
     const visible = current.match.observe("agent");
-    if (visible.phase !== "finished") return;
-    const { summary } = projectAgentContext(current.definition, visible);
-    this.#results.push({
-      game: agentMetadata(current.definition),
-      matchId: visible.matchId,
-      timestamp: new Date().toISOString(),
-      outcome: visible.outcome,
-      ...(summary === undefined ? {} : { summary }),
-    });
-    this.#results = this.#results.slice(-3);
     current.remembered = true;
     if (current.companion) {
       const report = makeReport(
@@ -401,7 +538,7 @@ export class AgentGamerPlatform {
         return fail("platform_closed");
       const changing =
         (companion?.display.key ?? "default") !== this.#companionKey();
-      await this.#driver?.cancel();
+      await this.#cancelAll();
       await this.settled();
       if (this.#disposed || generation !== this.#generation)
         return fail("platform_closed");
@@ -437,6 +574,7 @@ export class AgentGamerPlatform {
       this.#model = clone(model);
       this.#paused = false;
       this.#status = "idle";
+      this.#opponents.agent.paused = false;
       this.#error = "";
       await this.#effects?.select(this.#companion?.display ?? null);
       if (this.#companion) this.testCompanionReaction();
@@ -460,7 +598,64 @@ export class AgentGamerPlatform {
       return fail("agent_setup");
     } finally {
       this.#transition = false;
-      if (this.#pendingWake && !this.#paused && !this.#disposed) this.#wake();
+      for (const seat of this.#enabledSeats())
+        if (this.#opponents[seat].pending && !this.#paused && !this.#disposed)
+          this.#wake(seat);
+    }
+  }
+  async configureSecond(
+    model: ModelChoice,
+    create: (model: ModelChoice) => Promise<OpponentDriver>,
+  ): Promise<Receipt> {
+    if (this.#disposed) return fail("platform_closed");
+    if (this.hasActiveMatch) return fail("model_locked");
+    if (this.#transition) return fail("busy");
+    if (!model.provider?.trim() || !model.model?.trim())
+      return fail("model_required");
+    this.#transition = true;
+    const s = this.#opponents.agent2,
+      generation = ++this.#generation;
+    try {
+      await this.#cancelAll();
+      await this.settled();
+      if (this.#disposed || generation !== this.#generation)
+        return fail("platform_closed");
+      if (s.driver) await s.driver.selectModel(model);
+      else {
+        const driver = await create(model);
+        if (this.#disposed || generation !== this.#generation) {
+          await driver.dispose();
+          return fail("platform_closed");
+        }
+        s.driver = driver;
+      }
+      s.model = clone(model);
+      s.status = "idle";
+      s.error = "";
+      s.paused = false;
+      this.#changed();
+      return ok();
+    } catch {
+      if (!this.#disposed && generation === this.#generation) {
+        s.status = "error";
+        s.error = "无法创建对手 2 会话，请检查 DSH 模型配置后重试。";
+        this.#changed();
+      }
+      return fail("agent_setup");
+    } finally {
+      this.#transition = false;
+      for (const seat of this.#enabledSeats()) {
+        if (
+          !this.#disposed &&
+          !this.#paused &&
+          this.#ownMessages(seat).some(
+            (m) =>
+              m.sender === "human" &&
+              m.sequence > this.#opponents[seat].delivered,
+          )
+        )
+          this.#wake(seat);
+      }
     }
   }
   async start(gameId: string, rematch = false): Promise<Receipt> {
@@ -474,6 +669,10 @@ export class AgentGamerPlatform {
       return fail("game_already_running");
     const definition = this.#games.get(gameId);
     if (!definition) return fail("game_unknown");
+    if (definition.agentSeats === 2 && !this.#opponents.agent2.driver)
+      return fail("second_model_required");
+    if (definition.agentSeats === 2 && this.#companion)
+      return fail("multiplayer_pet_unsupported");
     this.#transition = true;
     const generation = ++this.#generation;
     this.#pendingWake = false;
@@ -493,7 +692,7 @@ export class AgentGamerPlatform {
           return fail("platform_closed");
         this.#companion = loaded;
       }
-      await this.#driver.cancel();
+      await this.#cancelAll();
       if (this.#disposed || generation !== this.#generation)
         return fail("platform_closed");
       await this.#effects?.select(this.#companion?.display ?? null);
@@ -512,11 +711,19 @@ export class AgentGamerPlatform {
         companion: this.#companion?.display ?? null,
       };
       this.#report = null;
+      for (const seat of this.#enabledSeats()) {
+        const s = this.#opponents[seat];
+        s.paused = false;
+        s.status = "idle";
+        s.error = "";
+        s.attempts.clear();
+      }
       this.#paused = false;
       this.#status = "idle";
+      this.#opponents.agent.paused = false;
       this.#error = "";
       this.#changed();
-      if (this.#agentCanAct()) this.#wake();
+      this.#wakeReady();
       return ok();
     } catch (e) {
       if (!this.#disposed && generation === this.#generation) {
@@ -529,7 +736,9 @@ export class AgentGamerPlatform {
       return fail("game_start");
     } finally {
       this.#transition = false;
-      if (this.#pendingWake && !this.#paused && !this.#disposed) this.#wake();
+      for (const seat of this.#enabledSeats())
+        if (this.#opponents[seat].pending && !this.#paused && !this.#disposed)
+          this.#wake(seat);
     }
   }
   async leave(): Promise<Receipt> {
@@ -541,7 +750,12 @@ export class AgentGamerPlatform {
     this.#paused = false;
     await this.#effects?.select(this.#companion?.display ?? null);
     try {
-      await this.#driver?.cancel();
+      await this.#cancelAll();
+      for (const s of Object.values(this.#opponents)) {
+        s.paused = false;
+        s.status = s.driver ? "idle" : "unconfigured";
+        s.error = "";
+      }
       this.#status = this.#driver ? "idle" : "unconfigured";
       this.#error = "";
       this.#changed();
@@ -569,12 +783,15 @@ export class AgentGamerPlatform {
       return old.signature === signature
         ? clone(old.receipt)
         : fail("request_id_reused");
+    if (actor !== "human" && !this.#enabledSeats().includes(actor))
+      return fail("seat_inactive");
     if (
       !this.#current ||
-      this.#current.match.observe(actor).matchId !== matchId
+      this.#current.match.observe("human").matchId !== matchId
     )
       return fail("match_mismatch");
-    if (actor === "agent" && this.#paused) return fail("agent_paused");
+    if (actor !== "human" && (this.#paused || this.#opponents[actor].paused))
+      return fail("agent_paused");
     const error = this.#current.match.apply(
       actor,
       expectedRevision,
@@ -584,15 +801,15 @@ export class AgentGamerPlatform {
       accepted: error === "",
       error,
       observation:
-        actor === "agent"
-          ? this.#agentObservation()
+        actor !== "human"
+          ? this.#agentObservation(actor)
           : this.#current.match.observe(actor),
     };
     if (error === "") {
       this.#receipts.set(key, { signature, receipt: clone(reply) });
       this.#error = "";
       this.#changed();
-      if (actor === "human" && this.#agentCanAct()) this.#wake();
+      this.#wakeReady();
     }
     return clone(reply);
   }
@@ -626,12 +843,14 @@ export class AgentGamerPlatform {
       this.#receipts.set(key, { signature, receipt: clone(reply) });
       this.#error = "";
       this.#changed();
-      if (this.#agentCanAct()) this.#wake();
+      this.#wakeReady();
     }
     return clone(reply);
   }
   say(actor: Actor, requestId: string, kind: string, value: string): Receipt {
     if (this.#disposed) return fail("platform_closed");
+    if (actor === "agent2" && !this.#enabledSeats().includes(actor))
+      return fail("seat_inactive");
     if (typeof requestId !== "string" || !requestId || requestId.length > 100)
       return fail("request_id");
     if (typeof value !== "string") return fail("chat_input");
@@ -664,8 +883,16 @@ export class AgentGamerPlatform {
       content,
       timestamp: new Date().toISOString(),
       gameId: this.#current?.definition.id ?? null,
-      matchId: this.#current?.match.observe(actor).matchId ?? null,
-      ...(this.#companion
+      matchId: this.#current?.match.observe("human").matchId ?? null,
+      ...(this.#current?.definition.agentSeats === 2
+        ? {
+            companionKey: "table",
+            ...(actor !== "human"
+              ? { senderName: actor === "agent" ? "对手 1" : "对手 2" }
+              : {}),
+          }
+        : {}),
+      ...(this.#companion && this.#current?.definition.agentSeats !== 2
         ? {
             companionKey: this.#companionKey(),
             ...(actor === "agent"
@@ -678,7 +905,8 @@ export class AgentGamerPlatform {
     const receipt = { ...ok(), sequence };
     this.#receipts.set(key, { signature, receipt: clone(receipt) });
     this.#changed();
-    if (actor === "human") this.#wake();
+    if (actor === "human")
+      for (const seat of this.#enabledSeats()) this.#wake(seat);
     else if (this.#companion)
       this.#effects?.emit(this.#companion.display, {
         kind: "chat",
@@ -736,138 +964,181 @@ export class AgentGamerPlatform {
   initializePreferences(value: DisplayPreferences) {
     return this.#preferencesInitialized ? ok() : this.setPreferences(value);
   }
-  async pause() {
+  async pause(seat?: AgentSeat) {
     if (this.#transition) return fail("busy");
-    this.#generation++;
-    this.#paused = true;
-    this.#status = "paused";
-    await this.#driver?.cancel();
+    if (seat) {
+      const s = this.#opponents[seat];
+      s.generation++;
+      s.paused = true;
+      s.status = "paused";
+      s.pending = false;
+      await s.driver?.cancel();
+    } else {
+      this.#generation++;
+      this.#paused = true;
+      for (const s of Object.values(this.#opponents))
+        if (s.driver) {
+          s.paused = true;
+          s.status = "paused";
+        }
+      await this.#cancelAll();
+    }
     this.#changed();
     return ok();
   }
-  resume() {
+  resume(seat?: AgentSeat) {
     if (this.#transition) return fail("busy");
     if (this.#disposed) return fail("platform_closed");
     if (!this.#driver) return fail("model_required");
     this.#paused = false;
-    this.#status = "idle";
-    this.#error = "";
-    this.#attempts.clear();
+    for (const actor of seat ? [seat] : this.#enabledSeats()) {
+      const s = this.#opponents[actor];
+      if (!s.driver) continue;
+      s.paused = false;
+      s.status = "idle";
+      s.error = "";
+      s.attempts.clear();
+      this.#wake(actor);
+    }
     this.#changed();
-    this.#wake();
     return ok();
   }
-  #agentCanAct() {
-    return (this.#current?.match.observe("agent").actions.length ?? 0) > 0;
+  #agentCanAct(seat: AgentSeat = "agent") {
+    return (
+      this.#enabledSeats().includes(seat) &&
+      (this.#current?.match.observe(seat).actions.length ?? 0) > 0
+    );
   }
-  #wake() {
-    this.#pendingWake = true;
+  #wake(seat: AgentSeat = "agent") {
+    const s = this.#opponents[seat];
+    s.pending = true;
     if (
-      !this.#running &&
+      !s.running &&
+      !s.paused &&
       !this.#paused &&
       !this.#transition &&
-      this.#driver &&
+      s.driver &&
       !this.#disposed
     )
       queueMicrotask(() => {
-        void this.#drain();
+        void this.#drain(seat);
       });
   }
-  async #drain() {
+  async #drain(seat: AgentSeat) {
+    const s = this.#opponents[seat];
     if (
-      this.#running ||
+      s.running ||
+      s.paused ||
       this.#paused ||
       this.#transition ||
-      !this.#driver ||
+      !s.driver ||
       this.#disposed
     )
       return;
-    this.#running = true;
+    s.running = true;
     try {
       while (
-        this.#pendingWake &&
+        s.pending &&
+        !s.paused &&
         !this.#paused &&
         !this.#transition &&
         !this.#disposed
       ) {
-        this.#pendingWake = false;
+        s.pending = false;
+        if (!this.#enabledSeats().includes(seat)) continue;
         const generation = this.#generation,
-          snapshot = this.observeAgent(),
+          seatGeneration = s.generation,
+          snapshot = this.observeAgent(seat),
           observation = snapshot.observation;
         const key = observation
           ? `${observation.matchId}:${observation.revision}`
           : "lobby";
-        if (this.#agentCanAct()) {
-          const attempts = this.#attempts.get(key) ?? 0;
+        if (this.#agentCanAct(seat)) {
+          const attempts = s.attempts.get(key) ?? 0;
           if (attempts >= 2) {
-            this.#status = "error";
-            this.#paused = true;
-            this.#error =
-              "Agent 未提交有效行动，已暂停。可点击重试继续当前局面。";
+            s.status = "error";
+            s.paused = true;
+            s.error = `${seat === "agent2" ? "对手 2" : "Agent"} 未提交有效行动，已暂停。可点击重试继续当前局面。`;
             this.#changed();
             break;
           }
-          this.#attempts.set(key, attempts + 1);
+          s.attempts.set(key, attempts + 1);
         }
-        const humanChat = chatBatch(this.#ownMessages(), this.#chatDelivered);
-        if (!this.#agentCanAct() && !humanChat.length) continue;
-        const through = humanChat.at(-1)?.sequence ?? this.#chatDelivered;
+        const humanChat = chatBatch(this.#ownMessages(seat), s.delivered);
+        if (!this.#agentCanAct(seat) && !humanChat.length) continue;
+        const through = humanChat.at(-1)?.sequence ?? s.delivered;
         const input: AgentWakePayload = {
           ...snapshot,
+          seat,
           humanChat,
           chatSequence: this.#chatSequence,
           memory: boundedMemory(
-            this.#ownMessages(),
-            this.#chatDelivered,
-            this.#results,
+            this.#ownMessages(seat),
+            s.delivered,
+            s.results,
             observation?.matchId,
-            this.#companion?.turns,
+            seat === "agent" && this.#current?.definition.agentSeats !== 2
+              ? this.#companion?.turns
+              : undefined,
           ),
         };
-        this.#status = "running";
+        s.status = "running";
         this.#changed();
         try {
-          await this.#driver.wake(JSON.stringify(input));
+          await s.driver.wake(JSON.stringify(input));
         } catch {
-          if (generation === this.#generation) {
-            this.#paused = true;
-            this.#status = "error";
-            this.#error =
-              "模型请求失败，局面已保留。检查 DSH 模型配置后点击重试。";
+          if (
+            generation === this.#generation &&
+            seatGeneration === s.generation &&
+            !s.paused
+          ) {
+            s.paused = true;
+            s.status = "error";
+            s.error = `${seat === "agent2" ? "对手 2" : "Agent"} 模型请求失败，局面已保留。检查 DSH 模型配置后点击重试。`;
             this.#changed();
           }
           break;
         }
-        if (generation !== this.#generation) continue;
-        this.#chatDelivered = Math.max(this.#chatDelivered, through);
-        this.#status = this.#paused ? "paused" : "idle";
+        if (
+          generation !== this.#generation ||
+          seatGeneration !== s.generation ||
+          s.paused
+        )
+          continue;
+        s.delivered = Math.max(s.delivered, through);
+        s.status = this.#paused ? "paused" : "idle";
         this.#changed();
         if (
-          this.#agentCanAct() ||
-          this.#ownMessages().some(
-            (m) => m.sender === "human" && m.sequence > this.#chatDelivered,
+          this.#agentCanAct(seat) ||
+          this.#ownMessages(seat).some(
+            (m) => m.sender === "human" && m.sequence > s.delivered,
           )
         )
-          this.#pendingWake = true;
+          s.pending = true;
       }
     } finally {
-      this.#running = false;
+      s.running = false;
       if (
-        this.#pendingWake &&
+        s.pending &&
+        !s.paused &&
         !this.#paused &&
         !this.#transition &&
         !this.#disposed
       )
-        this.#wake();
+        this.#wake(seat);
     }
   }
   async settled() {
     while (
-      this.#running ||
-      (this.#pendingWake &&
-        !this.#paused &&
-        !this.#transition &&
-        !!this.#driver)
+      Object.values(this.#opponents).some(
+        (s) =>
+          s.running ||
+          (s.pending &&
+            !s.paused &&
+            !this.#paused &&
+            !this.#transition &&
+            !!s.driver),
+      )
     )
       await new Promise((r) => setTimeout(r, 2));
   }
@@ -877,11 +1148,15 @@ export class AgentGamerPlatform {
     this.#generation++;
     this.#pendingWake = false;
     this.#current = null;
+    await this.#cancelAll();
     await this.#effects?.dispose();
     await this.#reportStore?.dispose();
-    await this.#driver?.dispose();
-    this.#driver = null;
-    this.#status = "unconfigured";
+    for (const s of Object.values(this.#opponents)) {
+      s.pending = false;
+      await s.driver?.dispose();
+      s.driver = null;
+      s.status = "unconfigured";
+    }
     this.#changed();
     this.#listeners.clear();
   }

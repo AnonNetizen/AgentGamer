@@ -1,6 +1,6 @@
 {
   "name": "dsh-agentgamer",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "在 DeepSeek Harness 中与 AI 或桌宠伙伴面对面玩游戏",
   "type": "module",
   "license": "MIT",
@@ -109,6 +109,7 @@
     "games",
     "blackjack",
     "liars-dice",
-    "dsh-pet"
+    "dsh-pet",
+    "doudizhu"
   ]
 }

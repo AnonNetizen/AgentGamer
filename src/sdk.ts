@@ -1,5 +1,7 @@
 /** Public Web game API v1. Never return a private rule object through Remote. */
-export type Actor = "human" | "agent";
+export type DuelActor = "human" | "agent";
+export type AgentSeat = "agent" | "agent2";
+export type Actor = DuelActor | "agent2";
 export type Json =
   | null
   | boolean
@@ -28,6 +30,8 @@ export interface GameMetadata {
   version: string;
   rulesVersion: string;
   rules: string;
+  /** Defaults to one. Additional seats are independently scoped DSH sessions. */
+  agentSeats?: 1 | 2;
 }
 export interface GameDefinition extends GameMetadata {
   create(matchId: string): GameMatch;
@@ -89,6 +93,7 @@ export interface ReportJob extends PublicReport {
   reply?: string;
 }
 export interface AgentWakePayload {
+  seat?: AgentSeat;
   game: AgentGameMetadata | null;
   observation: Observation | null;
   paused: boolean;
@@ -127,6 +132,7 @@ export interface PlatformSnapshot {
   model: ModelChoice | null;
   agentStatus: "unconfigured" | "idle" | "running" | "paused" | "error";
   error: string;
+  opponents?: OpponentSnapshot[];
   messages: ChatMessage[];
   chatSequence: number;
   humanReadSequence: number;
@@ -148,6 +154,14 @@ export interface PlatformSnapshot {
     message: string;
   };
 }
+export interface OpponentSnapshot {
+  seat: AgentSeat;
+  name: string;
+  sessionId: string | null;
+  model: ModelChoice | null;
+  status: PlatformSnapshot["agentStatus"];
+  error: string;
+}
 export interface Receipt {
   accepted: boolean;
   error: string;
@@ -166,6 +180,7 @@ export interface GameViewProps {
   busy: boolean;
   reduceMotion: boolean;
   opponentName?: string;
+  opponentNames?: Partial<Record<AgentSeat, string>>;
   act(action: Action): Promise<void>;
   next(): Promise<void>;
   rematch(): Promise<void>;
@@ -181,6 +196,7 @@ export interface GameHistoryProps {
   observation: Observation;
   close(): void;
   opponentName?: string;
+  opponentNames?: Partial<Record<AgentSeat, string>>;
 }
 export interface GameViewRegistry {
   register(view: GameViewRegistration): () => void;

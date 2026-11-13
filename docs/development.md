@@ -18,7 +18,9 @@ pnpm check:native
 
 该目录需要固定版本DSH的 `node_modules/@deepseek-ai/...` 运行模块；脚本只写它的 `agentgamer-check/` 测试区。也可按DSH官方开发流程准备一个开发副本。不要指向日常应用安装目录或含用户会话的DSH_HOME。
 
-`native-check.mjs` 覆盖会话、工具隔离、原生历史、取消和错误恢复；`dice-native-check.mjs` 覆盖两场吹牛骰与跨游戏；`token-check.mjs` 用相同行动比较旧基线与当前有效上下文。请求序列化字节不等于供应商Token、缓存命中或费用。
+`pnpm check:native` 同时将子进程的DSH_HOME固定在本项目 `.artifacts/dsh-native-home`，不读取日常profile。若直接执行单个原生检查脚本，也要自行显式设置隔离的DSH_HOME。
+
+`native-check.mjs` 覆盖会话、工具隔离、原生历史、取消和错误恢复；`dice-native-check.mjs` 覆盖两场吹牛骰与跨游戏；`doudizhu-native-check.mjs` 使用两个独立模拟模型验证双会话、两场斗地主、视角与工具身份、思考期间聊天排队和单席位错误恢复；`token-check.mjs` 用相同行动比较旧基线与当前有效上下文。请求序列化字节不等于供应商Token、缓存命中或费用。
 
 `scripts/mock-provider.mjs` 是无外部请求的模拟模型插件。把它放入能解析同一套DSH模块的测试副本，在独立Host加载后选择 `agentgamer-mock`。可选 `AGENTGAMER_PET_METRICS_PATH` 写合成身份标记与调用类别，不保存原始提示正文。
 
@@ -36,7 +38,11 @@ SDK：`dsh-agentgamer/sdk`。Host以Cordis `inject: ['agentgamer']` 获取服务
 
 可选 `projectAgentContext(observation)` 只接收已有Agent投影，压缩额外字段和公开跨场摘要，不能改变 `matchId / revision / phase / outcome / actions`。不实现时保留原观察。
 
+三人游戏可声明 `agentSeats: 2`，默认省略时仍为双人。三人 `observe/apply` 必须支持 `human | agent | agent2`，仅当前行动席位返回合法操作，每位Agent的观察和回执不得包含其他席位手牌。SDK的 `Actor` 覆盖三个席位；旧双人TypeScript规则如使用完整映射，改用 `DuelActor` 表达 `human | agent` 即可，现有JS扩展无须修改。平台在双人游戏中拒绝agent2行动，也不把它传入旧双人规则。
+
 客户端 `register({id, version, component, historyComponent?})`，保存并在卸载时调用清理函数。视图拿到人类观察及绑定身份的 `act / next / rematch / leave`；可选 `opponentName` 显示伙伴，`historyComponent` 渲染公开记录。标识与实现版本必须和Host完全一致。例见 [counting](../examples/counting/README.md)。
+
+`opponentNames?: Partial<Record<AgentSeat,string>>` 为三人视图及记录组件提供席位名。不要把规则实例传到浏览器；`doudizhu-cards.ts` 只含公开牌型代数，完整牌靴与随机流在Host专属 `doudizhu.ts` 中。
 
 ## 发行
 
@@ -45,7 +51,7 @@ SDK：`dsh-agentgamer/sdk`。Host以Cordis `inject: ['agentgamer']` 获取服务
 主包 `dsh-agentgamer` 另发布到npm，使用审核通过的同一tgz。历史 `dsh-plugin-agentgamer@0.2.0` 的npm产物与原GitHub Release逐字节一致；新版本继续使用同一归档分发。先确认该版本尚未发布，再在发布者本机完成npm登录及其要求的2FA验证：
 
 ```powershell
-npm publish ./release/dsh-agentgamer-0.2.1.tgz --access public --ignore-scripts --registry=https://registry.npmjs.org/
+npm publish ./release/dsh-agentgamer-0.3.0.tgz --access public --ignore-scripts --registry=https://registry.npmjs.org/
 ```
 
 后续发行替换成相应的新版本文件名，不能覆盖已经发布的版本。发布后核对registry完整性字段与匿名下载的归档，并在隔离profile按包名安装验证。不要把登录凭据或恢复码加入仓库、日志及CI。当前CI只构建、检查与生成归档，不自动发布npm或插件市场；counting示例仍作为本地包交付。

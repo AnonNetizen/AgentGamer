@@ -1,6 +1,6 @@
 {
   "name": "dsh-agentgamer-counting",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "type": "module",
   "main": "./host.js",
   "engines": {
@@ -27,7 +27,7 @@
     }
   },
   "peerDependencies": {
-    "dsh-agentgamer": "^0.2.1",
+    "dsh-agentgamer": "^0.2.1 || ^0.3.0",
     "@deepseek-ai/cordis": "4.1.0",
     "react": "^18.2.0"
   },

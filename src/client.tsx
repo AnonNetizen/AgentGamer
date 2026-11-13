@@ -18,6 +18,7 @@ import {
 } from "./sdk.js";
 import styles from "./styles.css";
 import { LiarsDiceView, DiceHistory } from "./liars-dice-view.js";
+import { DoudizhuView, DoudizhuHistory } from "./doudizhu-view.js";
 import { CompanionControls, ReportPanel } from "./companion-panel.js";
 
 interface ClientContext extends Context {
@@ -202,6 +203,14 @@ const errors: Record<string, string> = {
   model_unknown: "此模型已不可用，请重新选择。",
   agent_setup: "伙伴连接未完成，请检查接入资料和模型配置后重试。",
   game_start: "比赛未启动，请检查伙伴来源是否在线后重试。",
+  second_model_required: "斗地主需要两个独立模型席位，请先连接对手 2。",
+  multiplayer_pet_unsupported:
+    "斗地主首版只支持普通模型对手，请将对手 1 切换为普通对手并连接。",
+  bid_score: "叫分必须为不叫，或高于当前最高分的 1／2／3 分。",
+  cannot_pass: "本轮由你领出，需要出一组合法牌。",
+  play_pattern: "选中的牌未组成合法牌型。",
+  play_too_small: "这组牌无法压过当前出牌。",
+  cards_not_owned: "出牌包含当前手中没有的牌，请重新选牌。",
 };
 const errorText = (value: string) =>
   errors[value] ?? `操作失败（${value.slice(0, 120)}），请重试。`;
@@ -229,6 +238,12 @@ function mountUI(ctx: ClientContext) {
     version: "1.0.0",
     component: LiarsDiceView,
     historyComponent: DiceHistory,
+  });
+  registry.register({
+    id: "doudizhu",
+    version: "1.0.0",
+    component: DoudizhuView,
+    historyComponent: DoudizhuHistory,
   });
   const store = new ClientStore(async (operation, data = {}) => {
     const result = await ctx.remote.agentgamer.request(
@@ -313,6 +328,7 @@ export function AgentGamerPanel({
   const [search, setSearch] = useState(""),
     [model, setModel] = useState("");
   const [rulesGame, setRulesGame] = useState<string | null>(null);
+  const [secondModel, setSecondModel] = useState("");
   const [opponentMode, setOpponentMode] = useState<"auto" | "pet" | "default">(
     "auto",
   );
@@ -372,6 +388,11 @@ export function AgentGamerPanel({
     );
   const observation = s.observation,
     view = s.game && registry.views.get(`${s.game.id}@${s.game.version}`);
+  const multi = s.game?.agentSeats === 2;
+  const second = s.opponents?.find((o) => o.seat === "agent2");
+  const opponentNames = Object.fromEntries(
+    (s.opponents ?? []).map((o) => [o.seat, o.name]),
+  );
   const petMode =
     opponentMode === "auto" ? !!s.companion : opponentMode === "pet";
   const focusIssue =
@@ -413,6 +434,7 @@ export function AgentGamerPanel({
     busy,
     reduceMotion: s.preferences.reduceMotion,
     opponentName: s.opponent?.name,
+    opponentNames,
     act: async (action) => {
       await command("act", {
         matchId: observation.matchId,
@@ -463,7 +485,12 @@ export function AgentGamerPanel({
               title="查看 DSH 对战会话（含模型输出与工具日志）"
               onClick={() => openSession(s.sessionId!)}
             >
-              对战会话 ↗
+              {multi ? "对手 1 会话 ↗" : "对战会话 ↗"}
+            </button>
+          )}
+          {multi && second?.sessionId && (
+            <button onClick={() => openSession(second.sessionId!)}>
+              对手 2 会话 ↗
             </button>
           )}
           <button
@@ -569,6 +596,57 @@ export function AgentGamerPanel({
                   </button>
                 )}
               </section>
+              <section className="ag-model ag-second-model">
+                <div>
+                  <strong>三人游戏 · 对手 2</strong>
+                  <small>
+                    独立模型、会话与手牌视角，仅斗地主使用。可选与对手 1
+                    相同的模型。
+                  </small>
+                </div>
+                <select
+                  aria-label="对手 2 模型"
+                  value={
+                    secondModel ||
+                    (second?.model
+                      ? `${second.model.provider}\0${second.model.model}`
+                      : "")
+                  }
+                  onChange={(e) => setSecondModel(e.target.value)}
+                >
+                  <option value="">请选择第二个模型</option>
+                  {store.catalog.map((m) => (
+                    <option
+                      key={`${m.provider}/${m.model}`}
+                      value={`${m.provider}\0${m.model}`}
+                    >
+                      {m.name} · {m.provider}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  disabled={busy || !(secondModel || second?.model)}
+                  onClick={() => {
+                    const [provider, model] = (
+                      secondModel ||
+                      `${second?.model?.provider}\0${second?.model?.model}`
+                    ).split("\0");
+                    void command("configure", {
+                      seat: "agent2",
+                      provider,
+                      model,
+                    });
+                  }}
+                >
+                  {second?.sessionId ? "更换 / 重连对手 2" : "连接对手 2"}
+                </button>
+                <small className="ag-second-state">
+                  {second?.error ||
+                    (second?.sessionId
+                      ? "✓ 对手 2 已连接"
+                      : "尚未连接 · 两人游戏不需要此席位")}
+                </small>
+              </section>
               <CompanionControls
                 store={store}
                 petMode={petMode}
@@ -611,6 +689,9 @@ export function AgentGamerPanel({
                   )
                   .map((g) => {
                     const ready = registry.views.has(`${g.id}@${g.version}`);
+                    const requiresSecond = g.agentSeats === 2;
+                    const blocked =
+                      requiresSecond && (!second?.sessionId || !!s.companion);
                     return (
                       <article className="ag-game" key={g.id}>
                         <div className="ag-game-art" aria-hidden="true">
@@ -622,6 +703,7 @@ export function AgentGamerPanel({
                           ) : (
                             <>
                               <span>♠</span>
+                              {g.id === "doudizhu" && <span>♣</span>}
                               <span>♥</span>
                             </>
                           )}
@@ -634,6 +716,7 @@ export function AgentGamerPanel({
                         </div>
                         <p>
                           v{g.version} · 规则 {g.rulesVersion}
+                          {requiresSecond ? " · 三人对局" : ""}
                         </p>
                         <p className="ag-game-description">
                           {g.rules.split("\n")[1] || g.rules.slice(0, 100)}
@@ -649,13 +732,17 @@ export function AgentGamerPanel({
                         </button>
                         <button
                           className="ag-primary"
-                          disabled={busy || !s.sessionId || !ready}
+                          disabled={busy || !s.sessionId || !ready || blocked}
                           title={
                             !s.sessionId
                               ? "请先连接对战模型"
-                              : !ready
-                                ? "需要相同游戏版本的客户端视图"
-                                : ""
+                              : requiresSecond && s.companion
+                                ? "请先将对手 1 切换为普通模型对手"
+                                : requiresSecond && !second?.sessionId
+                                  ? "请连接对手 2"
+                                  : !ready
+                                    ? "需要相同游戏版本的客户端视图"
+                                    : ""
                           }
                           onClick={() =>
                             void command("start", { gameId: g.id })
@@ -663,9 +750,13 @@ export function AgentGamerPanel({
                         >
                           {busy
                             ? "正在准备…"
-                            : s.sessionId
-                              ? "开始比赛"
-                              : "请先连接模型"}
+                            : requiresSecond && s.companion
+                              ? "请连接普通模型对手"
+                              : requiresSecond && !second?.sessionId
+                                ? "请先连接对手 2"
+                                : s.sessionId
+                                  ? "开始比赛"
+                                  : "请先连接模型"}
                         </button>
                       </article>
                     );
@@ -716,6 +807,46 @@ export function AgentGamerPanel({
                   </button>
                 </div>
               </div>
+              {multi && (
+                <div className="ag-opponent-statuses" aria-label="对手会话状态">
+                  {s.opponents?.map((o) => (
+                    <div key={o.seat}>
+                      <span>
+                        <strong>{o.name}</strong>
+                        <small>
+                          {o.model?.model} ·{" "}
+                          {
+                            {
+                              unconfigured: "未连接",
+                              idle: "等待轮次",
+                              running: "处理中",
+                              paused: "已暂停",
+                              error: "需要重试",
+                            }[o.status]
+                          }
+                        </small>
+                      </span>
+                      <button
+                        disabled={busy}
+                        onClick={() =>
+                          void command(
+                            o.status === "error" || o.status === "paused"
+                              ? "resume"
+                              : "pause",
+                            { seat: o.seat },
+                          )
+                        }
+                      >
+                        {o.status === "error"
+                          ? `重试${o.name}`
+                          : o.status === "paused"
+                            ? `继续${o.name}`
+                            : `暂停${o.name}`}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               {view && gameProps ? (
                 <view.component key={observation!.matchId} {...gameProps} />
               ) : (
@@ -726,6 +857,7 @@ export function AgentGamerPanel({
                   component={view?.historyComponent}
                   observation={observation}
                   opponentName={s.opponent?.name}
+                  opponentNames={opponentNames}
                   close={() => setHistory(false)}
                 />
               )}
@@ -945,8 +1077,16 @@ function Chat({ store }: { store: ClientStore }) {
     <aside className="ag-chat" aria-label="与 Agent 聊天">
       <div className="ag-chat-heading">
         <div>
-          <h2>与 {s.opponent?.name ?? s.companion?.name ?? "Agent"} 聊天</h2>
-          <small>本次运行共享 · 消息保留发送时的伙伴身份</small>
+          <h2>
+            {s.game?.agentSeats === 2
+              ? "全桌聊天"
+              : `与 ${s.opponent?.name ?? s.companion?.name ?? "Agent"} 聊天`}
+          </h2>
+          <small>
+            {s.game?.agentSeats === 2
+              ? "两位对手都能看到玩家消息 · 请勿发送私有手牌"
+              : "本次运行共享 · 消息保留发送时的伙伴身份"}
+          </small>
         </div>
         <button
           aria-label="收起聊天"

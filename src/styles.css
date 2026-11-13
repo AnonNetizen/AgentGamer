@@ -23,6 +23,343 @@
 .ag * {
   box-sizing: border-box;
 }
+.ag-second-state {
+  grid-column: 1 / -1;
+}
+.ag-second-model {
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.ag-second-model > small {
+  width: 100%;
+}
+.ag-opponent-statuses {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 24px 12px;
+}
+.ag-opponent-statuses > div {
+  border: 1px solid var(--ag-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  background: var(--ag-panel);
+  min-width: 0;
+}
+.ag-opponent-statuses small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.ag-ddz {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 24px 20px;
+  max-width: 1420px;
+  margin: auto;
+}
+.ag-ddz-opponents {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.ag-ddz-opponent,
+.ag-ddz-human {
+  padding: 12px 16px;
+  border: 1px solid var(--ag-border);
+  border-radius: 16px;
+  background: var(--ag-panel);
+  min-width: 0;
+}
+.ag-ddz-active {
+  border-color: var(--ag-blue);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ag-blue) 12%, transparent);
+}
+.ag-ddz-seat-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ag-ddz-landlord {
+  color: #a16413;
+  background: #fcf1d9;
+}
+.ag-ddz-hidden {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8em;
+  color: var(--ag-muted);
+}
+.ag-ddz-hidden i {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 44px;
+  border-radius: 7px;
+  background: #3b63a0;
+  color: white;
+  font-style: normal;
+}
+.ag-ddz-last-play {
+  min-height: 30px;
+  margin-top: 8px;
+}
+.ag-ddz-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--ag-green) 5%, var(--ag-panel));
+  border-radius: 16px;
+}
+.ag-ddz-round-meta {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  font-size: 0.78em;
+  color: var(--ag-muted);
+}
+.ag-ddz-bottom {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.ag-ddz-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+.ag-ddz-public-cards {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.ag-ddz-card {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  width: 56px;
+  height: 76px;
+  padding: 4px 6px;
+  background: #fff;
+  color: #22324e;
+  border: 1px solid #d6deeb;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px #102c4b0c;
+  font-size: 1em;
+}
+.ag-ddz-card > span {
+  align-self: flex-end;
+  opacity: 0.7;
+}
+.ag-ddz-card b {
+  white-space: nowrap;
+}
+.ag-ddz-card-small {
+  width: 30px;
+  height: 40px;
+  font-size: 0.65em;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.ag-ddz-red {
+  color: #c64454;
+}
+.ag-ddz-hand {
+  display: flex;
+  align-items: flex-end;
+  overflow-x: auto;
+  padding: 16px 3px 8px;
+}
+.ag .ag-ddz-hand-card {
+  padding: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 8px;
+  margin: 0;
+  background: none;
+  flex: 0 0 auto;
+  position: relative;
+  transition: transform 0.18s;
+}
+.ag .ag-ddz-hand-card + .ag-ddz-hand-card {
+  margin-left: -19px;
+}
+.ag .ag-ddz-hand-card.ag-ddz-selected {
+  transform: translateY(-12px);
+}
+.ag-ddz-selected .ag-ddz-card {
+  border-color: var(--ag-blue);
+  background: #eef4ff;
+}
+.ag-ddz-controls {
+  position: sticky;
+  bottom: -1px;
+  background: var(--ag-panel);
+  padding: 12px 16px;
+  border: 1px solid var(--ag-border);
+  border-radius: 14px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+}
+.ag-ddz-controls > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ag-ddz-controls > p {
+  font-size: 0.83em;
+  color: var(--ag-muted);
+}
+.ag-ddz-scores {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.ag-ddz-result p {
+  font-size: 0.85em;
+}
+.ag-ddz-static *,
+.ag-reduced .ag-ddz * {
+  transition: none !important;
+  animation: none !important;
+}
+@media (max-width: 1100px) {
+  .ag-ddz-card {
+    width: 48px;
+    height: 64px;
+  }
+  .ag-ddz-card-small {
+    width: 26px;
+    height: 36px;
+  }
+  .ag .ag-ddz-hand-card + .ag-ddz-hand-card {
+    margin-left: -21px;
+  }
+  .ag-ddz-controls {
+    flex-direction: column;
+    padding: 8px;
+  }
+  .ag-ddz-opponent {
+    padding: 8px 10px;
+  }
+}
+@media (max-width: 700px) {
+  .ag-opponent-statuses > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ag-opponent-statuses button {
+    font-size: 0.8em;
+  }
+  .ag-ddz-opponents {
+    gap: 8px;
+  }
+  .ag-ddz-hidden span {
+    display: none;
+  }
+  .ag-ddz {
+    gap: 8px;
+  }
+  .ag-ddz-controls button {
+    padding: 8px 10px;
+  }
+}
+@media (max-height: 780px) {
+  .ag-opponent-statuses > div {
+    padding: 4px 10px;
+  }
+  .ag-opponent-statuses strong {
+    font-size: 0.9em;
+  }
+  .ag-opponent-statuses small {
+    font-size: 0.7em;
+  }
+  .ag-ddz {
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+  .ag-ddz-opponent,
+  .ag-ddz-human {
+    padding: 8px 10px;
+  }
+  .ag-ddz-seat-heading {
+    margin-bottom: 4px;
+  }
+  .ag-ddz-hidden {
+    display: none;
+  }
+  .ag-ddz-last-play {
+    margin-top: 0;
+    min-height: 0;
+  }
+  .ag-ddz-last-play .ag-ddz-public-cards {
+    display: none;
+  }
+  .ag-ddz-center {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    text-align: left;
+    gap: 4px 10px;
+    padding: 8px 10px;
+  }
+  .ag-ddz-center h2 {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 1.05em;
+  }
+  .ag-ddz-round-meta {
+    grid-column: 1 / -1;
+  }
+  .ag-ddz-bottom {
+    grid-column: 2;
+    grid-row: 2;
+    gap: 6px;
+  }
+  .ag-ddz-target {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+  }
+  .ag-ddz-center > .ag-hint {
+    display: none;
+  }
+  .ag-ddz-result {
+    grid-column: 1 / -1;
+  }
+  .ag-ddz-card {
+    height: 56px;
+  }
+  .ag-ddz-card-small {
+    height: 32px;
+    font-size: 0.6em;
+  }
+  .ag-ddz-hand {
+    padding-top: 14px;
+    padding-bottom: 4px;
+  }
+}
 .ag button,
 .ag input,
 .ag select,

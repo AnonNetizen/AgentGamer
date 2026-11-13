@@ -18,24 +18,24 @@
 
 已安装旧包 `dsh-plugin-agentgamer` 时，先按 [迁移说明](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md) 移除旧包及对应旧扩展，再安装新包；同一Host只启用一个主插件。
 
-1. 打开 DSH 侧栏 **插件 → 添加插件**，输入完整包名 `dsh-agentgamer` 并安装。
+1. 打开 DSH 侧栏 **插件 → 添加插件**，输入 `dsh-agentgamer@0.3.0` 并安装。
 2. 按 DSH 提示重启，进入侧栏 **AgentGamer**，选择模型并连接，然后开始比赛。
 
 也可以使用 CLI 按包名安装。**桌面版**先完全退出 DSH（包括托盘），使用该桌面版附带的 `dsh` 命令：
 
 ```powershell
-dsh plugin --profile desktop add dsh-agentgamer
+dsh plugin --profile desktop add dsh-agentgamer@0.3.0
 ```
 
 如果平时通过 `dsh web` 启动**浏览器版**，使用：
 
 ```powershell
-dsh plugin --profile web add dsh-agentgamer
+dsh plugin --profile web add dsh-agentgamer@0.3.0
 ```
 
 `desktop`／`web` 是运行配置名称，插件应安装到实际使用的同一 profile。自定义配置则填写启动时的名称。安装后重新打开对应 DSH；桌宠联动也要求两个插件启用在同一 Host。
 
-**已有0.2.x升级到0.3.0**：完全退出DSH后，执行 `dsh plugin --profile desktop add dsh-agentgamer@latest`（浏览器版换为 `web`，自定义profile填实际名称）。若装有旧counting扩展，先移除，再升级主包，最后安装本次发行的新counting包；见[升级说明](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md)。
+**已有0.2.x升级到0.3.0**：完全退出DSH后，执行 `dsh plugin --profile desktop add dsh-agentgamer@0.3.0`（浏览器版换为 `web`，自定义profile填实际名称）。若装有旧counting扩展，先移除，再升级主包，最后安装本次发行的新counting包；见[升级说明](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md)。
 
 需要离线包时，仍可从 [Releases](https://github.com/AnonNetizen/AgentGamer/releases) 下载 `dsh-agentgamer-0.3.0.tgz`，将上述命令中的包名换成 `./dsh-agentgamer-0.3.0.tgz`。如果侧栏没有入口，检查该 profile 的 `dsh.profile.bundles` 是否包含 `dsh-agentgamer`。
 

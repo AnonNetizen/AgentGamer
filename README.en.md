@@ -20,24 +20,24 @@ Validated with **DSH 0.2.2-rc.1, Windows x64, and Node ≥24.9**. The package de
 
 If you installed the former `dsh-plugin-agentgamer` package, follow the [migration guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md) to remove it and any corresponding old extension before installing the new package. Enable one main AgentGamer package per Host.
 
-1. Open **Plugins → Add plugin** in the DSH sidebar and install `dsh-agentgamer`.
+1. Open **Plugins → Add plugin** in the DSH sidebar and install `dsh-agentgamer@0.3.0`.
 2. Restart when prompted, open **AgentGamer** in the sidebar, select a model, and connect. You can then start a match.
 
 You can also install through the CLI. For **DSH Desktop**, fully quit DSH, including its tray process, and use the `dsh` command shipped with that Desktop installation:
 
 ```powershell
-dsh plugin --profile desktop add dsh-agentgamer
+dsh plugin --profile desktop add dsh-agentgamer@0.3.0
 ```
 
 For the **Web app** launched with `dsh web`, use:
 
 ```powershell
-dsh plugin --profile web add dsh-agentgamer
+dsh plugin --profile web add dsh-agentgamer@0.3.0
 ```
 
 `desktop` and `web` are profile names. Install into the profile you actually run; for a custom profile, use its name. Reopen the corresponding DSH after installation. Pet integration also requires both plugins to run in the same Host.
 
-**Upgrading from 0.2.x to 0.3.0:** fully quit DSH, then run `dsh plugin --profile desktop add dsh-agentgamer@latest` (replace `desktop` with `web` or your actual profile). If you use the counting extension, remove its old version before upgrading the main package, then install the new counting archive from this release. See the [upgrade guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md).
+**Upgrading from 0.2.x to 0.3.0:** fully quit DSH, then run `dsh plugin --profile desktop add dsh-agentgamer@0.3.0` (replace `desktop` with `web` or your actual profile). If you use the counting extension, remove its old version before upgrading the main package, then install the new counting archive from this release. See the [upgrade guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md).
 
 For manual package installation, download `dsh-agentgamer-0.3.0.tgz` from [Releases](https://github.com/AnonNetizen/AgentGamer/releases) and replace the package name in the command with `./dsh-agentgamer-0.3.0.tgz`. If the sidebar entry is missing, check that the profile's `dsh.profile.bundles` includes `dsh-agentgamer`.
 

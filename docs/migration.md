@@ -4,15 +4,17 @@ AgentGamer是原RushAgent DSH插件的新产品名。本仓库只包含插件，
 
 ## 从 dsh-agentgamer 0.2.x 更新
 
-结束比赛并完全退出DSH。0.2.x安装的版本范围可能不会自动跨到0.3.0，使用 `@latest` 显式升级。桌面版使用其自带CLI，浏览器版将 `desktop` 换成 `web`，自定义profile填写实际名称：
+结束比赛并完全退出DSH。0.2.x安装的版本范围可能不会自动跨到0.3.0，使用完整版本号显式升级。桌面版使用其自带CLI，浏览器版将 `desktop` 换成 `web`，自定义profile填写实际名称：
 
 ```powershell
-dsh plugin --profile desktop add dsh-agentgamer@latest
+dsh plugin --profile desktop add dsh-agentgamer@0.3.0
 ```
 
 如果装有 `dsh-agentgamer-counting`，先运行 `dsh plugin --profile desktop remove dsh-agentgamer-counting`，再升级主包，最后从本次Release下载并安装 `dsh-agentgamer-counting-0.3.0.tgz`。旧counting的peer范围只支持0.2.x，新的示例范围同时接受0.2.1和0.3.x；先移除扩展可以避免包管理器补装另一份旧主包。
 
 重启后，在大厅分别连接两个普通模型席位，即可开始斗地主；两个席位可使用相同或不同模型。21点与吹牛骰继续只使用对手1，斗地主首版不接桌宠。关闭Host会结束当前比赛和平台聊天，显示偏好、已点击战报状态及DSH原生历史按原有方式保留。
+
+pnpm 11默认会等待新包发布满1天；首日使用 `@latest` 可能仍选0.2.1。上面的精确版本命令已在隔离配置验证从0.2.1升级到0.3.0；包管理器只为该精确版本登记豁免，不需要关闭全局等待策略。来源：[pnpm 11官方说明](https://pnpm.io/blog/releases/11.0)。
 
 ## 从 dsh-plugin-agentgamer 0.2.0 切换
 
@@ -20,7 +22,7 @@ dsh plugin --profile desktop add dsh-agentgamer@latest
 
 ```powershell
 dsh plugin --profile desktop remove dsh-plugin-agentgamer
-dsh plugin --profile desktop add dsh-agentgamer
+dsh plugin --profile desktop add dsh-agentgamer@0.3.0
 ```
 
 浏览器版将 `desktop` 换成 `web`，自定义profile填写实际名称。原包和原v0.2.0发行附件保留；不要在同一Host同时启用新旧主包。需要示例时重新安装 `dsh-agentgamer-counting-0.3.0.tgz`。

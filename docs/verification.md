@@ -18,6 +18,13 @@
 
 原生检查统一把 `DSH_HOME` 指向项目 `.artifacts/dsh-native-home`；运行模块仍来自明确提供的隔离DSH副本。比赛与聊天不持久化，模型供应商的真实策略、实际费用和输入法手感留待试玩。
 
+### 0.3.0 分发核对
+
+- GitHub `v0.3.0` 指向 `a16a731ce53714b896afdb25f6c9aea2adc2d1fb`；主包、counting示例与SHA256SUMS均已上传。对应提交的Windows／Linux CI通过（run `43449035904`）。
+- npm发布 `dsh-agentgamer@0.3.0`，`latest` 指向0.3.0。匿名下载1061321字节主包，SHA-256为 `8a45acc57b538b1e28f38fd5a58b1ba2c2e41ce8444718733dfc97ed474129c0`；npm SHA-512 integrity和SHA-1 shasum匹配，GitHub归档与npm逐字节一致，发行标签中的大厅截图可访问。
+- 在隔离DSH profile先按npm安装0.2.1，再指定 `dsh-agentgamer@0.3.0` 升级成功；58个安装文件逐一匹配公开归档。启动registry安装版Host并调用真实Remote快照，正确返回21点1.0.1、吹牛骰1.0.0与双Agent席位的斗地主1.0.0，没有启动比赛或供应商模型。
+- 实测pnpm 11发布首日的 `@latest` 会受等待策略影响而仍选0.2.1；精确指定0.3.0后正常升级。发布后GitHub安装说明和发行页补充精确版本命令，已发布tgz及v0.3.0标签保持原样；日常DSH配置未更改。
+
 ## 0.2.0 历史验证
 
 普通检查不依赖Godot或.NET；历史规则来源使用80场合成黄金轨迹。真实宿主检查通过模拟模型进行，不请求真实供应商API，也不代表模型策略、计费Token或实际窗口手感。

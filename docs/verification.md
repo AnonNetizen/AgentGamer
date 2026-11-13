@@ -6,7 +6,7 @@
 
 ## 0.3.0 斗地主与双模型（2026-11-13）
 
-本轮产物为本地0.3.0安装包；本记录不表示已发布npm或GitHub Release。仍固定DSH 0.2.2-rc.1、Node 24.21.0、pnpm 11.28.5与Windows x64；只使用隔离Host及模拟模型。
+0.3.0安装包完成以下发行验证，产物见[GitHub Release](https://github.com/AnonNetizen/AgentGamer/releases/tag/v0.3.0)与[npm](https://www.npmjs.com/package/dsh-agentgamer/v/0.3.0)。仍固定DSH 0.2.2-rc.1、Node 24.21.0、pnpm 11.28.5与Windows x64；只使用隔离Host及模拟模型。
 
 - `pnpm release:local`：TypeScript、45/45规则／Host测试、80场原C#黄金轨迹、构建、示例语法和两个实际tgz归档审核通过。冻结基线和历史黄金数据未改动。
 - 斗地主覆盖全部牌型、飞机翅膀和2／王边界、相同张数比较、所有人不叫后的人类重发牌、轮次、持牌校验、连续不出重置、地主／农民共同胜负、普通／春天／反春天、炸弹与王炸倍率及零和得分。另以40个固定种子完成整副牌比赛，逐次核对候选牌来源、54张牌守恒与比赛终止。

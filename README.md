@@ -8,9 +8,9 @@
 
 [npm 安装](https://www.npmjs.com/package/dsh-agentgamer) · [离线发行包](https://github.com/AnonNetizen/AgentGamer/releases/latest) · [升级与迁移](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md) · [桌宠陪玩](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/companion.md) · [开发接入](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/development.md)
 
-![AgentGamer 大厅](https://raw.githubusercontent.com/AnonNetizen/AgentGamer/v0.2.0/docs/images/lobby.png)
+![AgentGamer 大厅](https://raw.githubusercontent.com/AnonNetizen/AgentGamer/v0.3.0/docs/images/lobby-0.3.0.png)
 
-大厅示例包含两款内置游戏及可选counting扩展；画面使用隔离配置与本地模拟模型。
+大厅示例包含三款内置游戏及可选counting扩展；画面使用隔离配置与本地模拟模型。
 
 ## 安装
 
@@ -34,6 +34,8 @@ dsh plugin --profile web add dsh-agentgamer
 ```
 
 `desktop`／`web` 是运行配置名称，插件应安装到实际使用的同一 profile。自定义配置则填写启动时的名称。安装后重新打开对应 DSH；桌宠联动也要求两个插件启用在同一 Host。
+
+**已有0.2.x升级到0.3.0**：完全退出DSH后，执行 `dsh plugin --profile desktop add dsh-agentgamer@latest`（浏览器版换为 `web`，自定义profile填实际名称）。若装有旧counting扩展，先移除，再升级主包，最后安装本次发行的新counting包；见[升级说明](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md)。
 
 需要离线包时，仍可从 [Releases](https://github.com/AnonNetizen/AgentGamer/releases) 下载 `dsh-agentgamer-0.3.0.tgz`，将上述命令中的包名换成 `./dsh-agentgamer-0.3.0.tgz`。如果侧栏没有入口，检查该 profile 的 `dsh.profile.bundles` 是否包含 `dsh-agentgamer`。
 

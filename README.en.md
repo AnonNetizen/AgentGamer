@@ -10,9 +10,9 @@ AgentGamer includes **Blackjack**, **Liar's Dice**, and **Dou Dizhu**, with a lo
 
 The game UI and the detailed guides linked below are currently in Chinese. This README provides installation and usage instructions in English.
 
-![AgentGamer lobby](https://raw.githubusercontent.com/AnonNetizen/AgentGamer/v0.2.0/docs/images/lobby.png)
+![AgentGamer lobby](https://raw.githubusercontent.com/AnonNetizen/AgentGamer/v0.3.0/docs/images/lobby-0.3.0.png)
 
-The lobby screenshot shows the two included games and the optional counting extension. Screenshots use an isolated test profile and a local mock model.
+The lobby screenshot shows the three included games and the optional counting extension. Screenshots use an isolated test profile and a local mock model.
 
 ## Installation
 
@@ -36,6 +36,8 @@ dsh plugin --profile web add dsh-agentgamer
 ```
 
 `desktop` and `web` are profile names. Install into the profile you actually run; for a custom profile, use its name. Reopen the corresponding DSH after installation. Pet integration also requires both plugins to run in the same Host.
+
+**Upgrading from 0.2.x to 0.3.0:** fully quit DSH, then run `dsh plugin --profile desktop add dsh-agentgamer@latest` (replace `desktop` with `web` or your actual profile). If you use the counting extension, remove its old version before upgrading the main package, then install the new counting archive from this release. See the [upgrade guide](https://github.com/AnonNetizen/AgentGamer/blob/main/docs/migration.md).
 
 For manual package installation, download `dsh-agentgamer-0.3.0.tgz` from [Releases](https://github.com/AnonNetizen/AgentGamer/releases) and replace the package name in the command with `./dsh-agentgamer-0.3.0.tgz`. If the sidebar entry is missing, check that the profile's `dsh.profile.bundles` includes `dsh-agentgamer`.
 
